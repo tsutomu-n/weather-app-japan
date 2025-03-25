@@ -21,6 +21,8 @@ interface WeatherInfoProps {
   isMobile?: boolean;
   cardType?: 'basic' | 'forecast' | 'environment' | 'all';
   onlyShowSpecificCard?: boolean;
+  fromCache?: boolean;
+  cachedAt?: string | null;
 }
 
 // マークダウンテキストから情報を抽出する関数
@@ -48,7 +50,9 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
   weatherData, 
   isMobile = false,
   cardType = 'all',
-  onlyShowSpecificCard = false
+  onlyShowSpecificCard = false,
+  fromCache = false,
+  cachedAt = null
 }) => {
   // マークダウンから情報を抽出
   const currentWeather = extractInfo(weatherData, '**☁️☔️ 現在の天気:**', ['**🌡️']);
@@ -80,11 +84,12 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
     : '';
   console.log('Yellow Sand Data:', yellowSand);
   
-  const pm25Pattern = '**🌫 PM2.5:**';
-  const pm25Index = weatherData.indexOf(pm25Pattern);
-  const pm25 = pm25Index !== -1 
-    ? weatherData.substring(pm25Index + pm25Pattern.length, weatherData.indexOf('\n\n', pm25Index) !== -1 ? weatherData.indexOf('\n\n', pm25Index) : weatherData.length).trim()
-    : '';
+  // PM2.5を抽出（μg/m³の部分も含めて抽出するように修正）
+  const pm25Pattern = /\*\*🌫 PM2\.5:\*\*\s*([\d.]+\s*μg\/m³)/;
+  const pm25Match = weatherData.match(pm25Pattern);
+  let pm25 = pm25Match ? pm25Match[1] : '';
+  
+  // コンソールに記録
   console.log('PM2.5 Data:', pm25);
   
   // 気温から数値部分のみを抽出する関数
@@ -143,7 +148,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               {currentWeather}
             </Badge>
             <Badge className="ml-2 bg-gray-700 text-white hover:bg-gray-700 border-none">
-              最終更新: 15分前
+              {fromCache ? `${cachedAt || ''}のデータ` : '最新データ'}
             </Badge>
           </div>
         </div>
@@ -237,7 +242,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
             <div>
               <div className="text-sm text-gray-500">PM2.5</div>
               <div className="mt-1 font-medium">
-                {pm25}
+                {pm25 || "データなし"}
               </div>
             </div>
           </div>
