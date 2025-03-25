@@ -316,9 +316,9 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {formattedHourlyForecasts.map((forecast, index) => (
                   <div key={index} className="text-center bg-white rounded-lg p-3 shadow-sm">
-                    <div className="text-gray-700 font-medium font-en-display">{forecast.time}</div>
+                    <div className="text-gray-700 font-medium font-en-display" style={{ fontSize: '0.7rem' }}>{forecast.time}</div>
                     <div className="font-semibold my-1 text-lg font-en-display">{forecast.temp}</div>
-                    <div className="text-xs text-gray-500 font-jp">{forecast.condition}</div>
+                    <div className="text-xs text-gray-500 font-jp" style={{ fontSize: '0.7rem' }}>{forecast.condition}</div>
                   </div>
                 ))}
               </div>
