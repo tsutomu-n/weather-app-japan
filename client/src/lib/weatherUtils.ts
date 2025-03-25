@@ -21,6 +21,19 @@ export interface WeatherResult {
 // キャッシュをクリアする関数
 export const clearWeatherCache = async (): Promise<boolean> => {
   try {
+    // Netlify環境では強制更新を使用する（キャッシュクリアのエンドポイントがないため）
+    if (window.location.hostname.includes('netlify.app')) {
+      // Netlifyでは各エンドポイントで個別にキャッシュが管理されるため、
+      // 強制更新オプションを使って最新データを取得（実質的なキャッシュクリア）
+      const apiUrl = '/.netlify/functions/weather';
+      await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city: 'sapporo', forceRefresh: true }),
+      });
+      return true;
+    }
+    
     const response = await fetch('/api/clear-cache', {
       method: 'POST',
       headers: {
@@ -43,7 +56,13 @@ export const clearWeatherCache = async (): Promise<boolean> => {
 // Function to fetch weather data from the server
 export const fetchWeatherData = async (city?: string, forceRefresh = false): Promise<WeatherResult> => {
   try {
-    const response = await fetch('/api/weather', {
+    // 環境によってAPIエンドポイントを切り替える
+    // 本番環境（Netlify）ではNetlify Functionsのパスを使用
+    const apiUrl = window.location.hostname.includes('netlify.app') 
+      ? '/.netlify/functions/weather' 
+      : '/api/weather';
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
