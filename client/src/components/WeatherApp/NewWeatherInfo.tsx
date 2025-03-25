@@ -107,6 +107,94 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
     return 'キャッシュデータ';
   };
   
+  // 風速を人間が理解しやすい表現に変換する関数
+  const getWindDescription = (windStr: string): string => {
+    // 風速を数値として抽出
+    const windMatch = windStr.match(/(\d+\.?\d*)\s*km\/h/);
+    if (!windMatch) return windStr;
+    
+    const windSpeed = parseFloat(windMatch[1]);
+    let description = '';
+    
+    if (windSpeed < 5) {
+      description = '微風（ほぼ無風）';
+    } else if (windSpeed < 12) {
+      description = '弱い風';
+    } else if (windSpeed < 20) {
+      description = 'やや強い風';
+    } else if (windSpeed < 30) {
+      description = '強い風';
+    } else {
+      description = '非常に強い風';
+    }
+    
+    return `${windStr} - ${description}`;
+  };
+  
+  // 気圧を人間が理解しやすい表現に変換する関数
+  const getPressureDescription = (pressureStr: string): string => {
+    // 気圧を数値として抽出
+    const pressureMatch = pressureStr.match(/(\d+)\s*hPa/);
+    if (!pressureMatch) return pressureStr;
+    
+    const pressure = parseInt(pressureMatch[1]);
+    let description = '';
+    
+    if (pressure < 1000) {
+      description = '低気圧（悪天候の可能性）';
+    } else if (pressure < 1005) {
+      description = 'やや低め';
+    } else if (pressure < 1015) {
+      description = '平常値';
+    } else if (pressure < 1025) {
+      description = 'やや高め';
+    } else {
+      description = '高気圧（安定した天気）';
+    }
+    
+    return `${pressureStr}（${description}）`;
+  };
+  
+  // PM2.5の値を健康への影響度として変換する関数
+  const getPM25Description = (pm25Str: string): { value: string, description: string, color: string } => {
+    // PM2.5の値を数値として抽出
+    const pm25Match = pm25Str.match(/(\d+\.?\d*)\s*μg\/m³/);
+    if (!pm25Match) {
+      return {
+        value: pm25Str || "データなし",
+        description: "情報なし",
+        color: "text-gray-500"
+      };
+    }
+    
+    const pm25Value = parseFloat(pm25Match[1]);
+    let description = '';
+    let color = '';
+    
+    if (pm25Value <= 12) {
+      description = '良好';
+      color = 'text-green-600';
+    } else if (pm25Value <= 35.4) {
+      description = '普通';
+      color = 'text-yellow-600';
+    } else if (pm25Value <= 55.4) {
+      description = '敏感な方注意';
+      color = 'text-orange-600';
+    } else if (pm25Value <= 150.4) {
+      description = '健康に悪影響';
+      color = 'text-red-600';
+    } else {
+      description = '非常に悪い';
+      color = 'text-purple-600';
+    }
+    
+    return {
+      value: pm25Str,
+      description,
+      color
+    };
+  };
+  
   // 気温から数値部分のみを抽出する関数
   const extractTemperature = (tempStr: string): string => {
     const tempMatch = tempStr.match(/(\d+\.\d+)℃/);
@@ -238,7 +326,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               <div className="text-sm text-gray-500">風</div>
               <div className="mt-1 font-medium flex items-center">
                 <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none">
-                  {wind}
+                  {getWindDescription(wind)}
                 </Badge>
               </div>
             </div>
@@ -253,14 +341,23 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
             <div>
               <div className="text-sm text-gray-500">気圧</div>
               <div className="mt-1 font-medium">
-                {pressure}
+                {getPressureDescription(pressure)}
               </div>
             </div>
             
             <div>
               <div className="text-sm text-gray-500">PM2.5</div>
-              <div className="mt-1 font-medium">
-                {pm25 || "データなし"}
+              <div className="mt-1">
+                {pm25 ? (
+                  <>
+                    <div className="font-medium">{pm25}</div>
+                    <div className={`text-xs mt-1 ${getPM25Description(pm25).color}`}>
+                      {getPM25Description(pm25).description}
+                    </div>
+                  </>
+                ) : (
+                  <div className="font-medium">データなし</div>
+                )}
               </div>
             </div>
           </div>
