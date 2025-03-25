@@ -488,7 +488,7 @@ ${cityName}${suffix}の天気情報です。データは ${location.localtime} �
     console.log(`${refreshReason} for ${targetCity}, fetching fresh data...`);
     
     const weatherData = await fetchWeatherData(targetCity);
-    const formattedWeather = await formatWeatherData(weatherData, targetCity);
+    const formattedWeather = await formatWeatherData(weatherData, targetCity, forceRefresh);
     
     // キャッシュを更新
     weatherCache[targetCity] = {
