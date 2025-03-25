@@ -37,7 +37,10 @@ const extractInfo = (text: string, startPattern: string, endPatterns: string[] =
     }
   }
   
-  return text.substring(contentStartIndex, endIndex).trim();
+  // 抽出テキストをログに出力して確認（デバッグ用）
+  const extractedText = text.substring(contentStartIndex, endIndex).trim();
+  console.log(`Extracted ${startPattern}: "${extractedText}"`);
+  return extractedText;
 };
 
 const WeatherInfo: React.FC<WeatherInfoProps> = ({ 
@@ -56,13 +59,32 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
   const hourlyForecastSection = extractInfo(weatherData, '**⏰ 時間ごとの予報:**', ['**🍃']);
   const hourlyForecasts = hourlyForecastSection.split('\n').filter(line => line.includes('* '));
   
-  // 環境データを抽出
+  // 環境データを抽出（正確に抽出するためにパターンを修正）
   const wind = extractInfo(weatherData, '**🍃 風:**', ['**💧']);
   const humidity = extractInfo(weatherData, '**💧 湿度:**', ['**⬇️']);
   const pressure = extractInfo(weatherData, '**⬇️ 気圧:**', ['**🌲']);
-  const pollen = extractInfo(weatherData, '**🌲 花粉:**', ['**💛']);
-  const yellowSand = extractInfo(weatherData, '**💛 黄砂:**', ['**🌫']);
-  const pm25 = extractInfo(weatherData, '**🌫 PM2.5:**', ['\n\n']);
+  
+  // 花粉、黄砂、PM2.5用にパターンを修正しました
+  const pollenPattern = '**🌲 花粉:**';
+  const pollenIndex = weatherData.indexOf(pollenPattern);
+  const pollen = pollenIndex !== -1 
+    ? weatherData.substring(pollenIndex + pollenPattern.length, weatherData.indexOf('**💛', pollenIndex)).trim()
+    : '';
+  console.log('Pollen Data:', pollen);
+  
+  const yellowSandPattern = '**💛 黄砂:**';
+  const yellowSandIndex = weatherData.indexOf(yellowSandPattern);
+  const yellowSand = yellowSandIndex !== -1 
+    ? weatherData.substring(yellowSandIndex + yellowSandPattern.length, weatherData.indexOf('**🌫', yellowSandIndex)).trim()
+    : '';
+  console.log('Yellow Sand Data:', yellowSand);
+  
+  const pm25Pattern = '**🌫 PM2.5:**';
+  const pm25Index = weatherData.indexOf(pm25Pattern);
+  const pm25 = pm25Index !== -1 
+    ? weatherData.substring(pm25Index + pm25Pattern.length, weatherData.indexOf('\n\n', pm25Index) !== -1 ? weatherData.indexOf('\n\n', pm25Index) : weatherData.length).trim()
+    : '';
+  console.log('PM2.5 Data:', pm25);
   
   // フッター情報を抽出
   const footer = weatherData.substring(weatherData.lastIndexOf('\n')).trim();
@@ -201,21 +223,21 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               <Flower2 className="h-3.5 w-3.5 text-green-700 mr-1.5" />
               <p className="text-sm text-green-700 font-medium">花粉</p>
             </div>
-            <p className={`${isMobile ? 'text-sm' : 'text-base'} break-words`}>{pollen}</p>
+            <p className={`${isMobile ? 'text-sm' : 'text-base'} break-words min-h-[2rem]`}>{pollen || "データがありません"}</p>
           </div>
           <div className="touch-manipulation bg-amber-50/50 p-3 rounded-lg shadow-sm">
             <div className="flex items-center mb-1">
               <Wind className="h-3.5 w-3.5 text-amber-700 mr-1.5" />
               <p className="text-sm text-amber-700 font-medium">黄砂</p>
             </div>
-            <p className={`${isMobile ? 'text-sm' : 'text-base'} break-words`}>{yellowSand}</p>
+            <p className={`${isMobile ? 'text-sm' : 'text-base'} break-words min-h-[2rem]`}>{yellowSand || "データがありません"}</p>
           </div>
           <div className="touch-manipulation bg-blue-50/50 p-3 rounded-lg shadow-sm">
             <div className="flex items-center mb-1">
               <Cloud className="h-3.5 w-3.5 text-blue-700 mr-1.5" />
               <p className="text-sm text-blue-700 font-medium">PM2.5</p>
             </div>
-            <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pm25}</p>
+            <p className={`${isMobile ? 'text-sm' : 'text-base'} min-h-[2rem]`}>{pm25 || "データがありません"}</p>
           </div>
         </div>
       </div>
