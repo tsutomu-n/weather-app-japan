@@ -1,6 +1,26 @@
-node_modules
-dist
+# 依存関係
+node_modules/
+
+# ビルド出力
+dist/
+.server/public/
+
+# 環境変数
+.env
+.env.local
+.env.*.local
+
+# システムファイル
 .DS_Store
-server/public
-vite.config.ts.*
+
+# ログファイル
+*.log
+npm-debug.log*
+
+# 圧縮ファイル
 *.tar.gz
+*.zip
+
+# IDE関連
+.idea/
+.vscode/
