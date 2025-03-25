@@ -23,6 +23,7 @@ interface WeatherInfoProps {
   onlyShowSpecificCard?: boolean;
   fromCache?: boolean;
   cachedAt?: string | null;
+  onRefresh?: () => void;
 }
 
 // マークダウンテキストから情報を抽出する関数
@@ -52,7 +53,8 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
   cardType = 'all',
   onlyShowSpecificCard = false,
   fromCache = false,
-  cachedAt = null
+  cachedAt = null,
+  onRefresh
 }) => {
   // マークダウンから情報を抽出
   const currentWeather = extractInfo(weatherData, '**☁️☔️ 現在の天気:**', ['**🌡️']);
@@ -154,10 +156,13 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
         </div>
         
         <div className="flex justify-center mt-3 mb-3">
-          <div className="flex items-center text-sm text-gray-600">
+          <button 
+            className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+            onClick={() => onRefresh && onRefresh()}
+          >
             <RotateCw className="h-3.5 w-3.5 mr-1" />
             最新の情報に更新
-          </div>
+          </button>
         </div>
       </Card>
       

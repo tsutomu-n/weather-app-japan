@@ -12,6 +12,7 @@ interface WeatherDisplayProps {
   isAIFallback?: boolean;
   fromCache?: boolean;
   cachedAt?: string | null;
+  onRefresh?: () => void;
 }
 
 const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ 
@@ -21,7 +22,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   weatherData,
   isAIFallback = false,
   fromCache = false,
-  cachedAt = null
+  cachedAt = null,
+  onRefresh
 }) => {
   const isMobile = useIsMobile();
   
@@ -59,7 +61,14 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
       {!loading && !error && weatherData && (
         <div className="relative transition-all duration-300">
           <div className="transition-all duration-500 ease-in-out">
-            <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="all" />
+            <WeatherInfo 
+              weatherData={weatherData} 
+              isMobile={isMobile} 
+              cardType="all" 
+              fromCache={fromCache}
+              cachedAt={cachedAt}
+              onRefresh={onRefresh}
+            />
           </div>
         </div>
       )}
