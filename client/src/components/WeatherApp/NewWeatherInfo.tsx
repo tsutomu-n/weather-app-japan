@@ -108,12 +108,13 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
   };
   
   // 風速を人間が理解しやすい表現に変換する関数
-  const getWindDescription = (windStr: string): string => {
-    // 風速を数値として抽出
-    const windMatch = windStr.match(/(\d+\.?\d*)\s*km\/h/);
+  const getWindDescription = (windStr: string): React.ReactNode => {
+    // 風速と方向を抽出
+    const windMatch = windStr.match(/(\d+\.?\d*)\s*km\/h\s*\(([^)]+)\)/);
     if (!windMatch) return windStr;
     
     const windSpeed = parseFloat(windMatch[1]);
+    const direction = windMatch[2];
     let description = '';
     
     if (windSpeed < 5) {
@@ -128,11 +129,17 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
       description = '非常に強い風';
     }
     
-    return `${windStr} - ${description}`;
+    return (
+      <>
+        <span className="font-en-display">
+          {windSpeed}<span style={{ fontSize: '0.8em' }}> km/h</span> ({direction})
+        </span> - {description}
+      </>
+    );
   };
   
   // 気圧を人間が理解しやすい表現に変換する関数
-  const getPressureDescription = (pressureStr: string): string => {
+  const getPressureDescription = (pressureStr: string): React.ReactNode => {
     // 気圧を数値として抽出
     const pressureMatch = pressureStr.match(/(\d+)\s*hPa/);
     if (!pressureMatch) return pressureStr;
@@ -152,7 +159,14 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
       description = '高気圧（安定した天気）';
     }
     
-    return `${pressureStr}（${description}）`;
+    return (
+      <>
+        <span className="font-en-display">
+          {pressure}<span style={{ fontSize: '0.8em' }}> hPa</span>
+        </span>
+        <div className="text-xs mt-1">（{description}）</div>
+      </>
+    );
   };
   
   // PM2.5の値を健康への影響度として変換する関数
@@ -251,11 +265,11 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
           
           <div className="flex items-end mt-6">
             <div className="text-6xl font-bold font-en-display">
-              {extractTemperature(currentTemp)}°C
+              {extractTemperature(currentTemp)}<span style={{ fontSize: '0.8em' }}>°C</span>
             </div>
           </div>
           <div className="text-gray-300 mt-2 font-jp">
-            体感温度 <span className="font-en">{extractFeelsLike(currentTemp)}°C</span>
+            体感温度 <span className="font-en">{extractFeelsLike(currentTemp)}<span style={{ fontSize: '0.8em' }}>°C</span></span>
           </div>
           
           <div className="mt-3 flex">
@@ -292,12 +306,12 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               <div className="text-sm text-gray-500 font-medium font-jp">予想気温</div>
               <div className="flex items-baseline mt-2">
                 <ArrowDown className="h-4 w-4 text-blue-500 mr-1" />
-                <span className="text-blue-600 font-medium font-en-display">{minTemp}°C</span>
+                <span className="text-blue-600 font-medium font-en-display">{minTemp}<span style={{ fontSize: '0.8em' }}>°C</span></span>
                 
                 <span className="mx-2 text-gray-400">/</span>
                 
                 <ArrowDown className="h-4 w-4 text-red-500 mr-1 rotate-180" />
-                <span className="text-red-600 font-medium font-en-display">{maxTemp}°C</span>
+                <span className="text-red-600 font-medium font-en-display">{maxTemp}<span style={{ fontSize: '0.8em' }}>°C</span></span>
               </div>
             </div>
             
@@ -305,7 +319,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               <div className="text-sm text-gray-500 font-medium font-jp">降水確率</div>
               <div className="flex items-center mt-2">
                 <CloudRain className="h-4 w-4 text-blue-500 mr-1" />
-                <span className="text-blue-600 font-medium font-en-display">{rainProb}</span>
+                <span className="text-blue-600 font-medium font-en-display">{rainProb.replace('%', '')}<span style={{ fontSize: '0.8em' }}>%</span></span>
               </div>
             </div>
           </div>
@@ -317,7 +331,9 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
                 {formattedHourlyForecasts.map((forecast, index) => (
                   <div key={index} className="text-center bg-white rounded-lg p-3 shadow-sm">
                     <div className="text-gray-700 font-medium font-en-display" style={{ fontSize: '0.7rem' }}>{forecast.time}</div>
-                    <div className="font-semibold my-1 text-lg font-en-display">{forecast.temp}</div>
+                    <div className="font-semibold my-1 text-lg font-en-display">
+                      {forecast.temp.replace('°C', '')}<span style={{ fontSize: '0.8em' }}>°C</span>
+                    </div>
                     <div className="text-xs text-gray-500 font-jp" style={{ fontSize: '0.7rem' }}>{forecast.condition}</div>
                   </div>
                 ))}
@@ -348,7 +364,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-500 font-medium font-jp">湿度</div>
               <div className="mt-2 font-medium font-en-display">
-                {humidity}
+                {humidity.replace('%', '')}<span style={{ fontSize: '0.8em' }}>%</span>
               </div>
             </div>
             
@@ -364,7 +380,9 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               <div className="mt-2">
                 {pm25 ? (
                   <>
-                    <div className="font-medium font-en-display">{pm25}</div>
+                    <div className="font-medium font-en-display">
+                      {pm25.replace(' μg/m³', '')}<span style={{ fontSize: '0.8em' }}> μg/m³</span>
+                    </div>
                     <div className={`text-xs mt-1 ${getPM25Description(pm25).color} font-medium font-jp`}>
                       {getPM25Description(pm25).description}
                     </div>
