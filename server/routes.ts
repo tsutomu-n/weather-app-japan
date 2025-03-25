@@ -152,15 +152,16 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     const location = data.location;
     const forecast = data.forecast?.forecastday?.[0];
     
-    // Get city name in Japanese
-    let cityName;
-    if (cityParam === "Takasaki") {
-      cityName = "高崎";
-    } else {
-      cityName = "札幌";
-    }
+    // 都市のIDを推測 (APIフォーマットから)
+    const cityId = cityParam.includes("Takasaki") ? "takasaki" : 
+                   cityParam === "Tokyo" ? "tokyo" :
+                   cityParam === "Osaka" ? "osaka" :
+                   cityParam === "Fukuoka" ? "fukuoka" : "sapporo";
     
-    console.log(`Formatting weather data for city: ${cityName} (param: ${cityParam})`);
+    // 日本語の都市名を取得
+    const cityName = getCityJapaneseName(cityId);
+    
+    console.log(`Formatting weather data for city: ${cityName} (param: ${cityParam}, id: ${cityId})`);
     
     // Get air quality data if available
     const aqi = current.air_quality || {};
@@ -271,9 +272,35 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
 `;
   }
 
+  // 都市IDをAPIで使用する形式に変換
+  function getCityApiName(cityId: string): string {
+    // constants.tsと同じマッピングを使用（将来的にはimportするのが理想的）
+    switch(cityId) {
+      case 'sapporo': return 'Sapporo';
+      case 'takasaki': return 'Takasaki,Japan';
+      case 'tokyo': return 'Tokyo';
+      case 'osaka': return 'Osaka';
+      case 'fukuoka': return 'Fukuoka';
+      default: return 'Sapporo'; // デフォルトは札幌
+    }
+  }
+  
+  // 都市IDから日本語名を取得
+  function getCityJapaneseName(cityId: string): string {
+    // constants.tsと同じマッピングを使用
+    switch(cityId) {
+      case 'sapporo': return '札幌';
+      case 'takasaki': return '高崎';
+      case 'tokyo': return '東京';
+      case 'osaka': return '大阪';
+      case 'fukuoka': return '福岡';
+      default: return '札幌'; // デフォルトは札幌
+    }
+  }
+
   // キャッシュからデータを取得するか、新しいデータをフェッチする関数
-  async function getWeatherDataWithCache(city: string): Promise<{ text: string, fromCache: boolean }> {
-    const targetCity = city === 'takasaki' ? 'Takasaki' : 'Sapporo';
+  async function getWeatherDataWithCache(cityId: string): Promise<{ text: string, fromCache: boolean }> {
+    const targetCity = getCityApiName(cityId);
     const now = Date.now();
     
     // キャッシュにデータがあるか確認
@@ -316,13 +343,22 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
       // キャッシュを活用してデータを取得
       const { text, fromCache } = await getWeatherDataWithCache(city);
       
+      // API形式の都市名を取得
+      const apiCityName = getCityApiName(city);
+      
       // キャッシュ情報をログに出力
-      console.log(`Weather data for ${city} served ${fromCache ? 'from cache' : 'freshly fetched'}`);
+      console.log(`Weather data for ${city} (${apiCityName}) served ${fromCache ? 'from cache' : 'freshly fetched'}`);
+      
+      // キャッシュされた時間を計算
+      let cachedTimeString = null;
+      if (fromCache && weatherCache[apiCityName]) {
+        cachedTimeString = new Date(weatherCache[apiCityName].timestamp).toLocaleTimeString();
+      }
       
       return res.json({ 
         text, 
         fromCache,
-        cachedAt: fromCache ? new Date(weatherCache[city === 'takasaki' ? 'Takasaki' : 'Sapporo'].timestamp).toLocaleTimeString() : null
+        cachedAt: cachedTimeString
       });
       
     } catch (error) {
