@@ -94,6 +94,19 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
   // コンソールに記録
   console.log('PM2.5 Data:', pm25);
   
+  // キャッシュされた時間を人間が読みやすい形式に変換する関数
+  const formatCachedTime = (cachedTime: string | null): string => {
+    if (!cachedTime) return 'キャッシュ';
+    
+    // 時間だけを抽出（例：「12:34」の形式）
+    const timeMatch = cachedTime.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      return `${timeMatch[1]}:${timeMatch[2]}のデータ`;
+    }
+    
+    return 'キャッシュデータ';
+  };
+  
   // 気温から数値部分のみを抽出する関数
   const extractTemperature = (tempStr: string): string => {
     const tempMatch = tempStr.match(/(\d+\.\d+)℃/);
@@ -150,7 +163,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
               {currentWeather}
             </Badge>
             <Badge className="ml-2 bg-gray-700 text-white hover:bg-gray-700 border-none">
-              {fromCache ? `${cachedAt || ''}のデータ` : '最新データ'}
+              {fromCache ? formatCachedTime(cachedAt) : '最新データ'}
             </Badge>
           </div>
         </div>

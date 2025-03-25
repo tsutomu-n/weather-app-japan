@@ -73,6 +73,7 @@ const WeatherApp: React.FC = () => {
           isAIFallback={isAIFallback}
           fromCache={fromCache}
           cachedAt={cachedAt}
+          onRefresh={handleRefresh}
         />
         
         {isAIFallback && (
