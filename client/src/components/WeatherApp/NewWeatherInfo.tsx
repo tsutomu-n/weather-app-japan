@@ -216,10 +216,22 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
     const timeMatch = forecast.match(/\*\s+(\d+)時:\s+([^(]+)\s+\(([^)]+)\)/);
     if (timeMatch) {
       const [, time, temp, condition] = timeMatch;
-      return { time, temp: temp.trim(), condition: condition.trim() };
+      // 時間を数値に変換
+      const hour = parseInt(time);
+      // 午前/午後の表記を追加
+      const formattedTime = hour < 12 ? `午前${hour}時` : (hour === 12 ? `午後12時` : `午後${hour - 12}時`);
+      return { 
+        time: formattedTime, 
+        hour: hour, // 元の時間を保持（ソート用）
+        temp: temp.trim(), 
+        condition: condition.trim() 
+      };
     }
-    return { time: '', temp: '', condition: '' };
-  }).filter(f => f.time !== '');
+    return { time: '', hour: 0, temp: '', condition: '' };
+  })
+  .filter(f => f.time !== '')
+  // 時間順にソート
+  .sort((a, b) => a.hour - b.hour);
 
   // 新しいデザインに基づいたコンポーネント
   return (
@@ -303,7 +315,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
             <div className="grid grid-cols-4">
               {formattedHourlyForecasts.map((forecast, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-gray-700">{forecast.time}時</div>
+                  <div className="text-gray-700">{forecast.time}</div>
                   <div className="font-semibold my-1">{forecast.temp}</div>
                   <div className="text-xs text-gray-500">{forecast.condition}</div>
                 </div>
