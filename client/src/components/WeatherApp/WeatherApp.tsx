@@ -83,8 +83,8 @@ const WeatherApp: React.FC = () => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen p-3 sm:p-6 bg-gradient-to-b from-sky-50 to-white">
-      <header className="w-full max-w-2xl text-center mb-4 sm:mb-8 mt-4 sm:mt-6">
+    <div className="flex flex-col items-center justify-start min-h-screen p-2 sm:p-6 bg-gradient-to-b from-sky-50 to-white">
+      <header className="w-full max-w-2xl text-center mb-3 sm:mb-8 mt-2 sm:mt-6">
         <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
           今日の天気
         </h1>
@@ -94,7 +94,7 @@ const WeatherApp: React.FC = () => {
         ${isMobile 
           ? 'grid grid-cols-2 gap-2 w-full px-1' 
           : 'flex flex-wrap justify-center gap-2'} 
-        mb-4 sm:mb-6 max-w-2xl
+        mb-3 sm:mb-6 max-w-2xl
       `}>
         {SUPPORTED_CITIES.map(city => (
           <WeatherButton 
@@ -107,13 +107,17 @@ const WeatherApp: React.FC = () => {
       </div>
       
       {showWeather && (
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-3 sm:mb-4 w-full">
           <Button
             variant="outline"
             size={isMobile ? "default" : "sm"}
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-1 shadow-sm touch-manipulation active:scale-95 transition-transform"
+            className={`
+              flex items-center gap-1 shadow-sm touch-manipulation 
+              active:scale-95 transition-transform
+              ${isMobile ? 'w-full max-w-xs py-2.5' : ''}
+            `}
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             最新の情報に更新

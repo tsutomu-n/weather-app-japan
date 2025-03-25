@@ -61,7 +61,7 @@ const WeatherButton: React.FC<WeatherButtonProps> = ({
         ${selectedClass} 
         text-white 
         font-medium 
-        ${isMobile ? 'py-4 px-4 text-base w-full' : 'py-6 px-6 text-lg'} 
+        ${isMobile ? 'py-3 px-3 text-sm w-full' : 'py-6 px-6 text-lg'} 
         rounded-lg 
         shadow-lg 
         focus:outline-none 
@@ -71,13 +71,14 @@ const WeatherButton: React.FC<WeatherButtonProps> = ({
         touch-manipulation
         transition-all 
         duration-200 
-        mb-2
-        ${isMobile ? 'mx-0 my-1' : 'mx-2 my-2'}
+        ${isMobile ? 'mx-0 my-0.5 h-16 flex flex-col items-center justify-center' : 'mx-2 my-2'}
       `}
       size={isMobile ? "default" : "lg"}
     >
-      <Icon className={`${isMobile ? 'mr-1.5 h-4 w-4' : 'mr-2 h-5 w-5'}`} />
-      {isMobile ? city.nameJa : `今日の${city.nameJa}`}
+      <Icon className={`${isMobile ? 'mb-1 h-5 w-5' : 'mr-2 h-5 w-5'}`} />
+      <span className={isMobile ? 'text-center leading-tight' : ''}>
+        {isMobile ? city.nameJa : `今日の${city.nameJa}`}
+      </span>
     </Button>
   );
 };
