@@ -119,15 +119,15 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
       <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} gap-3 mb-4`}>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">風</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{wind}</p>
+          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{wind}</p>
         </div>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">湿度</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{humidity}</p>
+          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{humidity}</p>
         </div>
         <div className={`touch-manipulation ${isMobile ? 'col-span-2' : ''}`}>
           <p className="text-sm text-gray-500 mb-1">気圧</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pressure}</p>
+          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{pressure}</p>
         </div>
       </div>
       
@@ -136,15 +136,15 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
       <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-3'}`}>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">花粉</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pollen}</p>
+          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{pollen}</p>
         </div>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">黄砂</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{yellowSand}</p>
+          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{yellowSand}</p>
         </div>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">PM2.5</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pm25}</p>
+          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{pm25}</p>
         </div>
       </div>
 

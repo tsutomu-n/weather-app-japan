@@ -71,29 +71,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
 
       {!loading && !error && weatherData && (
         <div className={`relative transition-all duration-300 ${isMobile ? 'pb-16' : ''}`}>
-          <div className="flex justify-between items-center mb-2">
-            <div>
-              {isMobile && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={toggleExpand} 
-                  className="flex items-center gap-1 text-sm text-muted-foreground"
-                >
-                  {expanded ? (
-                    <>
-                      <ChevronUp className="h-4 w-4" />
-                      <span>詳細を隠す</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      <span>詳細を表示</span>
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+          <div className="flex justify-end items-center mb-2">
             <div>
               {fromCache && (
                 <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
@@ -110,67 +88,52 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
             </div>
           </div>
           
-          {isMobile ? (
-            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${expanded ? 'max-h-none' : 'max-h-[700px]'}`}>
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="basic-info" className="border-b border-b-primary/20">
-                  <AccordionTrigger className="py-3 px-4 bg-primary/5 hover:bg-primary/10 rounded-t-lg font-semibold">
-                    基本情報
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-3">
-                    <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="basic" />
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="forecast" className="border-b border-b-primary/20">
-                  <AccordionTrigger className="py-3 px-4 bg-amber-500/5 hover:bg-amber-500/10 font-semibold">
-                    今日の予報
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-3">
-                    <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="forecast" />
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="environment" className="border-b border-b-primary/20">
-                  <AccordionTrigger className="py-3 px-4 bg-green-500/5 hover:bg-green-500/10 font-semibold">
-                    環境データ
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-3">
-                    <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="environment" />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+          <div className={`transition-all duration-500 ease-in-out overflow-hidden ${expanded ? 'max-h-none' : 'max-h-[700px]'}`}>
+            <Accordion type="multiple" defaultValue={["basic-info"]} className="w-full">
+              <AccordionItem value="basic-info" className="border-b border-b-primary/20">
+                <AccordionTrigger className="py-3 px-4 bg-primary/5 hover:bg-primary/10 rounded-t-lg font-semibold">
+                  基本情報
+                </AccordionTrigger>
+                <AccordionContent className="pt-3">
+                  <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="basic" />
+                </AccordionContent>
+              </AccordionItem>
               
-              {expanded && isAIFallback && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-amber-700 text-sm">
-                    <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <WeatherInfo weatherData={weatherData} isMobile={isMobile} />
+              <AccordionItem value="forecast" className="border-b border-b-primary/20">
+                <AccordionTrigger className="py-3 px-4 bg-amber-500/5 hover:bg-amber-500/10 font-semibold">
+                  今日の予報
+                </AccordionTrigger>
+                <AccordionContent className="pt-3">
+                  <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="forecast" />
+                </AccordionContent>
+              </AccordionItem>
               
-              {isAIFallback && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-amber-700 text-sm">
-                    <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
-                  </p>
-                </div>
-              )}
-            </>
-          )}
+              <AccordionItem value="environment" className="border-b border-b-primary/20">
+                <AccordionTrigger className="py-3 px-4 bg-green-500/5 hover:bg-green-500/10 font-semibold">
+                  環境データ
+                </AccordionTrigger>
+                <AccordionContent className="pt-3">
+                  <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="environment" />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+            
+            {isAIFallback && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-700 text-sm">
+                  <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
+                </p>
+              </div>
+            )}
+          </div>
           
-          {isMobile && (
+          {isMobile && !expanded && (
             <div 
-              className={`
+              className="
                 absolute bottom-0 left-0 right-0 
                 flex justify-center items-center 
                 p-2 bg-gradient-to-t from-white to-transparent
-                ${expanded ? 'hidden' : 'block'}
-              `}
+              "
             >
               <Button 
                 variant="ghost" 
@@ -179,7 +142,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
                 className="text-primary flex items-center gap-1 rounded-full bg-white/80 px-4 py-1 shadow-sm border"
               >
                 <ExternalLink className="h-3 w-3" />
-                <span className="text-xs">もっと見る</span>
+                <span className="text-xs">すべて表示</span>
               </Button>
             </div>
           )}
