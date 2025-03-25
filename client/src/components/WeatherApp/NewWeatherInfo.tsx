@@ -235,135 +235,137 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
 
   // 新しいデザインに基づいたコンポーネント
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-md mx-auto px-4 py-6">
       {/* 基本情報カード - ダークモードヘッダー */}
-      <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
-        <div className="bg-gray-900 text-white p-4">
+      <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-lg">
+        <div className="bg-gray-900 text-white p-5">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-bold">今日の天気</h2>
               <p className="text-gray-300 mt-1">札幌</p>
             </div>
-            <div className="flex justify-center items-center w-10 h-10 bg-gray-800 rounded-full">
-              <Cloud className="h-6 w-6 text-white" />
+            <div className="flex justify-center items-center w-12 h-12 bg-gray-800 rounded-full">
+              <Cloud className="h-7 w-7 text-white" />
             </div>
           </div>
           
-          <div className="flex items-end mt-4">
-            <div className="text-5xl font-bold">
+          <div className="flex items-end mt-6">
+            <div className="text-6xl font-bold">
               {extractTemperature(currentTemp)}°C
             </div>
           </div>
-          <div className="text-gray-300 mt-1">
+          <div className="text-gray-300 mt-2">
             体感温度 {extractFeelsLike(currentTemp)}°C
           </div>
           
-          <div className="mt-2 flex">
-            <Badge className="bg-gray-700 text-white hover:bg-gray-700 border-none">
+          <div className="mt-3 flex">
+            <Badge className="bg-gray-700 text-white hover:bg-gray-700 border-none px-3 py-1">
               {currentWeather}
             </Badge>
-            <Badge className="ml-2 bg-gray-700 text-white hover:bg-gray-700 border-none">
+            <Badge className="ml-2 bg-gray-700 text-white hover:bg-gray-700 border-none px-3 py-1">
               {fromCache ? formatCachedTime(cachedAt) : '最新データ'}
             </Badge>
           </div>
         </div>
         
-        <div className="flex justify-center mt-3 mb-3">
+        <div className="flex justify-center py-4">
           <button 
-            className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+            className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer hover:bg-gray-100 px-4 py-2 rounded-full"
             onClick={() => onRefresh && onRefresh()}
           >
-            <RotateCw className="h-3.5 w-3.5 mr-1" />
+            <RotateCw className="h-4 w-4 mr-2" />
             最新の情報に更新
           </button>
         </div>
       </Card>
       
       {/* 予報情報カード */}
-      <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm bg-white">
-        <div className="flex items-center p-4 space-x-2">
-          <Clock className="h-5 w-5 text-gray-500" />
-          <h3 className="text-base font-semibold">今日の予報</h3>
+      <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-lg bg-white">
+        <div className="flex items-center p-5 border-b border-gray-100">
+          <Clock className="h-5 w-5 text-gray-500 mr-2" />
+          <h3 className="text-lg font-semibold">今日の予報</h3>
         </div>
         
-        <div className="px-4 pb-3">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-sm text-gray-500">予想気温</div>
-              <div className="flex items-baseline mt-1">
+        <div className="px-5 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="bg-blue-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500 font-medium">予想気温</div>
+              <div className="flex items-baseline mt-2">
                 <ArrowDown className="h-4 w-4 text-blue-500 mr-1" />
                 <span className="text-blue-600 font-medium">{minTemp}°C</span>
                 
-                <span className="mx-1 text-gray-400">/</span>
+                <span className="mx-2 text-gray-400">/</span>
                 
                 <ArrowDown className="h-4 w-4 text-red-500 mr-1 rotate-180" />
                 <span className="text-red-600 font-medium">{maxTemp}°C</span>
               </div>
             </div>
             
-            <div>
-              <div className="text-sm text-gray-500">降水確率</div>
-              <div className="flex items-center mt-1">
+            <div className="bg-blue-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500 font-medium">降水確率</div>
+              <div className="flex items-center mt-2">
                 <CloudRain className="h-4 w-4 text-blue-500 mr-1" />
                 <span className="text-blue-600 font-medium">{rainProb}</span>
               </div>
             </div>
           </div>
           
-          <div className="mt-4">
-            <div className="text-sm text-gray-500 mb-2">時間ごとの予報</div>
-            <div className="grid grid-cols-4">
-              {formattedHourlyForecasts.map((forecast, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-gray-700">{forecast.time}</div>
-                  <div className="font-semibold my-1">{forecast.temp}</div>
-                  <div className="text-xs text-gray-500">{forecast.condition}</div>
-                </div>
-              ))}
+          <div className="mt-6">
+            <div className="text-sm text-gray-500 font-medium mb-3">時間ごとの予報</div>
+            <div className="bg-gray-50 rounded-xl p-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {formattedHourlyForecasts.map((forecast, index) => (
+                  <div key={index} className="text-center bg-white rounded-lg p-3 shadow-sm">
+                    <div className="text-gray-700 font-medium">{forecast.time}</div>
+                    <div className="font-semibold my-1 text-lg">{forecast.temp}</div>
+                    <div className="text-xs text-gray-500">{forecast.condition}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </Card>
       
       {/* 環境データカード */}
-      <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm bg-white">
-        <div className="flex items-center p-4 space-x-2">
-          <MoveDown className="h-5 w-5 text-gray-500" />
-          <h3 className="text-base font-semibold">環境データ</h3>
+      <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-lg bg-white">
+        <div className="flex items-center p-5 border-b border-gray-100">
+          <MoveDown className="h-5 w-5 text-gray-500 mr-2" />
+          <h3 className="text-lg font-semibold">環境データ</h3>
         </div>
         
-        <div className="px-4 pb-3">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-            <div>
-              <div className="text-sm text-gray-500">風</div>
-              <div className="mt-1 font-medium flex items-center">
-                <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none">
+        <div className="px-5 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500 font-medium">風</div>
+              <div className="mt-2 font-medium">
+                <div className="text-sm text-gray-700 whitespace-normal">
                   {getWindDescription(wind)}
-                </Badge>
+                </div>
               </div>
             </div>
             
-            <div>
-              <div className="text-sm text-gray-500">湿度</div>
-              <div className="mt-1 font-medium">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500 font-medium">湿度</div>
+              <div className="mt-2 font-medium">
                 {humidity}
               </div>
             </div>
             
-            <div>
-              <div className="text-sm text-gray-500">気圧</div>
-              <div className="mt-1 font-medium">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500 font-medium">気圧</div>
+              <div className="mt-2 font-medium text-sm">
                 {getPressureDescription(pressure)}
               </div>
             </div>
             
-            <div>
-              <div className="text-sm text-gray-500">PM2.5</div>
-              <div className="mt-1">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500 font-medium">PM2.5</div>
+              <div className="mt-2">
                 {pm25 ? (
                   <>
                     <div className="font-medium">{pm25}</div>
-                    <div className={`text-xs mt-1 ${getPM25Description(pm25).color}`}>
+                    <div className={`text-xs mt-1 ${getPM25Description(pm25).color} font-medium`}>
                       {getPM25Description(pm25).description}
                     </div>
                   </>
@@ -374,23 +376,23 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
             </div>
           </div>
           
-          <div className="mt-5 space-y-3">
-            <div className="text-sm text-gray-500 mb-2">環境情報</div>
+          <div className="mt-6 space-y-4">
+            <div className="text-sm text-gray-500 font-medium mb-2">環境情報</div>
             
-            <div className="px-3 py-2 bg-gray-50 rounded-lg">
+            <div className="px-4 py-3 bg-amber-50 rounded-lg border border-amber-100">
               <div className="flex items-center">
-                <Flower2 className="h-4 w-4 text-amber-800 mr-2" />
-                <span className="text-sm font-medium text-gray-700">花粉:</span>
+                <Flower2 className="h-5 w-5 text-amber-800 mr-2" />
+                <span className="text-sm font-medium text-gray-700">花粉情報</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">{pollen || "観測データなし"}</p>
+              <p className="text-sm text-gray-600 mt-2">{pollen || "観測データなし"}</p>
             </div>
             
-            <div className="px-3 py-2 bg-gray-50 rounded-lg">
+            <div className="px-4 py-3 bg-amber-50 rounded-lg border border-amber-100">
               <div className="flex items-center">
-                <Wind className="h-4 w-4 text-amber-500 mr-2" />
-                <span className="text-sm font-medium text-gray-700">黄砂:</span>
+                <Wind className="h-5 w-5 text-amber-500 mr-2" />
+                <span className="text-sm font-medium text-gray-700">黄砂情報</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">{yellowSand || "観測データなし"}</p>
+              <p className="text-sm text-gray-600 mt-2">{yellowSand || "観測データなし"}</p>
             </div>
           </div>
         </div>
