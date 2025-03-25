@@ -43,22 +43,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return "データなし (APIキーが設定されていません)";
       }
       
-      // Create URL with query parameters
-      const searchParams = new URLSearchParams({
-        q: "今日 札幌 花粉情報 速報 花粉飛散状況",
-        country: "jp",
-        search_lang: "ja",
-        count: "3",
-        freshness: "pd"  // Past day for fresh results
-      });
+      // Create simple querystring with minimal parameters
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent("札幌 花粉情報")}&count=3`;
       
-      const response = await fetch(
-        `https://api.search.brave.com/res/v1/web/search?${searchParams.toString()}`, 
-        {
+      const response = await fetch(url, {
           method: "GET",
           headers: {
             "Accept": "application/json",
-            "Accept-Encoding": "gzip",
             "X-Subscription-Token": braveSearchApiKey
           }
         }
@@ -97,22 +88,13 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
         return "データなし (APIキーが設定されていません)";
       }
       
-      // Create URL with query parameters
-      const searchParams = new URLSearchParams({
-        q: "今日 札幌 黄砂 飛来状況 観測速報",
-        country: "jp",
-        search_lang: "ja",
-        count: "3",
-        freshness: "pd"  // Past day for fresh results
-      });
+      // Create simple querystring with minimal parameters
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent("札幌 黄砂")}&count=3`;
       
-      const response = await fetch(
-        `https://api.search.brave.com/res/v1/web/search?${searchParams.toString()}`, 
-        {
+      const response = await fetch(url, {
           method: "GET",
           headers: {
             "Accept": "application/json",
-            "Accept-Encoding": "gzip",
             "X-Subscription-Token": braveSearchApiKey
           }
         }
@@ -189,9 +171,54 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
       }
     }
     
-    // Fetch additional information using Brave Search API
-    const pollenInfo = await searchPollenInfo();
-    const yellowSandInfo = await searchYellowSandInfo();
+    // Get month for seasonal information (for fallback data)
+    const currentMonth = new Date().getMonth() + 1; // January is 0 in JS
+    
+    // Default pollen and yellow sand info based on season in Japan
+    let defaultPollenInfo = "データなし";
+    let defaultYellowSandInfo = "データなし";
+    
+    // Seasonal defaults for pollen
+    if (currentMonth >= 2 && currentMonth <= 5) {
+      // Spring - cedar and cypress pollen season in Japan
+      defaultPollenInfo = "杉・ヒノキ花粉 - 飛散期 (季節的推定)";
+    } else if (currentMonth >= 8 && currentMonth <= 10) {
+      // Late Summer/Fall - ragweed pollen season
+      defaultPollenInfo = "ブタクサ花粉 - 飛散期 (季節的推定)"; 
+    } else {
+      defaultPollenInfo = "花粉の飛散 - 少量 (季節的推定)";
+    }
+    
+    // Seasonal defaults for yellow sand (Kosa) - most common in spring
+    if (currentMonth >= 3 && currentMonth <= 5) {
+      defaultYellowSandInfo = "黄砂現象の可能性あり (季節的推定)";
+    } else {
+      defaultYellowSandInfo = "黄砂の影響 - 少ない (季節的推定)";
+    }
+    
+    // Try to fetch additional information using Brave Search API
+    let pollenInfo;
+    let yellowSandInfo;
+    
+    try {
+      pollenInfo = await searchPollenInfo();
+      // If API returned an error message, use our season-based fallback
+      if (pollenInfo.includes("データなし") || pollenInfo.includes("エラー")) {
+        pollenInfo = defaultPollenInfo;
+      }
+    } catch (e) {
+      pollenInfo = defaultPollenInfo;
+    }
+    
+    try {
+      yellowSandInfo = await searchYellowSandInfo();
+      // If API returned an error message, use our season-based fallback
+      if (yellowSandInfo.includes("データなし") || yellowSandInfo.includes("エラー")) {
+        yellowSandInfo = defaultYellowSandInfo;
+      }
+    } catch (e) {
+      yellowSandInfo = defaultYellowSandInfo;
+    }
     
     // Format the output in Markdown
     return `# 今日の札幌の天気
