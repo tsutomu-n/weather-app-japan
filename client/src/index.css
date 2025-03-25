@@ -2,12 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --font-jp-primary: 'Noto Sans JP', sans-serif;
+  --font-jp-rounded: 'M PLUS Rounded 1c', sans-serif;
+  --font-en-primary: 'Roboto', sans-serif;
+  --font-en-display: 'Montserrat', sans-serif;
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    font-family: var(--font-jp-primary);
+    @apply antialiased bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-jp-rounded);
+    @apply font-bold;
+  }
+
+  /* 数値、英語のテキスト用クラス */
+  .font-en {
+    font-family: var(--font-en-primary);
+  }
+
+  .font-en-display {
+    font-family: var(--font-en-display);
+  }
+
+  /* タイトルや見出し用の日本語フォント */
+  .font-jp-rounded {
+    font-family: var(--font-jp-rounded);
+  }
+
+  /* 本文用の日本語フォント */
+  .font-jp {
+    font-family: var(--font-jp-primary);
   }
 }

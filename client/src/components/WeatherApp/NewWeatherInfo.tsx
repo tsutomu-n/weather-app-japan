@@ -241,8 +241,8 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
         <div className="bg-gray-900 text-white p-5">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold">今日の天気</h2>
-              <p className="text-gray-300 mt-1">札幌</p>
+              <h2 className="text-2xl font-bold font-jp-rounded">今日の天気</h2>
+              <p className="text-gray-300 mt-1 font-jp">札幌</p>
             </div>
             <div className="flex justify-center items-center w-12 h-12 bg-gray-800 rounded-full">
               <Cloud className="h-7 w-7 text-white" />
@@ -250,12 +250,12 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
           </div>
           
           <div className="flex items-end mt-6">
-            <div className="text-6xl font-bold">
+            <div className="text-6xl font-bold font-en-display">
               {extractTemperature(currentTemp)}°C
             </div>
           </div>
-          <div className="text-gray-300 mt-2">
-            体感温度 {extractFeelsLike(currentTemp)}°C
+          <div className="text-gray-300 mt-2 font-jp">
+            体感温度 <span className="font-en">{extractFeelsLike(currentTemp)}°C</span>
           </div>
           
           <div className="mt-3 flex">
@@ -283,29 +283,29 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
       <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-lg bg-white">
         <div className="flex items-center p-5 border-b border-gray-100">
           <Clock className="h-5 w-5 text-gray-500 mr-2" />
-          <h3 className="text-lg font-semibold">今日の予報</h3>
+          <h3 className="text-lg font-semibold font-jp-rounded">今日の予報</h3>
         </div>
         
         <div className="px-5 py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="bg-blue-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500 font-medium">予想気温</div>
+              <div className="text-sm text-gray-500 font-medium font-jp">予想気温</div>
               <div className="flex items-baseline mt-2">
                 <ArrowDown className="h-4 w-4 text-blue-500 mr-1" />
-                <span className="text-blue-600 font-medium">{minTemp}°C</span>
+                <span className="text-blue-600 font-medium font-en-display">{minTemp}°C</span>
                 
                 <span className="mx-2 text-gray-400">/</span>
                 
                 <ArrowDown className="h-4 w-4 text-red-500 mr-1 rotate-180" />
-                <span className="text-red-600 font-medium">{maxTemp}°C</span>
+                <span className="text-red-600 font-medium font-en-display">{maxTemp}°C</span>
               </div>
             </div>
             
             <div className="bg-blue-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500 font-medium">降水確率</div>
+              <div className="text-sm text-gray-500 font-medium font-jp">降水確率</div>
               <div className="flex items-center mt-2">
                 <CloudRain className="h-4 w-4 text-blue-500 mr-1" />
-                <span className="text-blue-600 font-medium">{rainProb}</span>
+                <span className="text-blue-600 font-medium font-en-display">{rainProb}</span>
               </div>
             </div>
           </div>
@@ -331,7 +331,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
       <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-lg bg-white">
         <div className="flex items-center p-5 border-b border-gray-100">
           <MoveDown className="h-5 w-5 text-gray-500 mr-2" />
-          <h3 className="text-lg font-semibold">環境データ</h3>
+          <h3 className="text-lg font-semibold font-jp-rounded">環境データ</h3>
         </div>
         
         <div className="px-5 py-4">
