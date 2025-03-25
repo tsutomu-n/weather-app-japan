@@ -225,8 +225,8 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
       // Fetch actual weather data from the API
       const weatherData = await fetchWeatherData();
       
-      // Format the weather data
-      const formattedWeather = formatWeatherData(weatherData);
+      // Format the weather data with additional info from Brave Search
+      const formattedWeather = await formatWeatherData(weatherData);
 
       return res.json({ text: formattedWeather });
       
