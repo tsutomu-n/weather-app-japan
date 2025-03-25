@@ -22,7 +22,10 @@ export const SUPPORTED_CITIES: CityConfig[] = [
 export const DEFAULT_CITY = SUPPORTED_CITIES[0];
 
 // キャッシュの有効期間 (ミリ秒)
-export const CACHE_DURATION_MS = 3 * 60 * 60 * 1000; // 3時間
+export const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12時間
+
+// 環境データのキャッシュ有効期間 (ミリ秒)
+export const ENV_CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24時間
 
 export const PROMPT_TEMPLATE = `
   あなたは、札幌の天気情報を提供するアシスタントです。

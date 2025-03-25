@@ -22,8 +22,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let model: any;
   
   // キャッシュの設定
-  const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3時間（ミリ秒）
+  const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12時間（ミリ秒）
+  const ENV_CACHE_DURATION = 24 * 60 * 60 * 1000; // 環境データは24時間（ミリ秒）
   const weatherCache: WeatherCache = {};
+  
+  // エラー発生時のリトライ制限
+  const ERROR_COOLDOWN = 30 * 60 * 1000; // エラー後30分は再試行しない
+  let lastErrorTimestamp: {[api: string]: number} = {};
 
   // Get or initialize the model
   function getModel() {
@@ -46,11 +51,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       if (!response.ok) {
+        // APIエラー発生時にタイムスタンプを記録
+        lastErrorTimestamp["weather"] = Date.now();
         throw new Error(`Weather API responded with status ${response.status}`);
+      }
+      
+      // エラーが解消されたらタイムスタンプをリセット
+      if (lastErrorTimestamp["weather"]) {
+        delete lastErrorTimestamp["weather"];
       }
       
       return await response.json();
     } catch (error) {
+      // エラー発生時にタイムスタンプを記録
+      lastErrorTimestamp["weather"] = Date.now();
       console.error(`Error fetching weather data for ${city}:`, error);
       throw error;
     }
@@ -61,6 +75,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!braveSearchApiKey) {
         return "データなし";
+      }
+      
+      // エラークールダウン期間中ならAPIリクエストをスキップ
+      const now = Date.now();
+      if (
+        lastErrorTimestamp["pollen"] && 
+        now - lastErrorTimestamp["pollen"] < ERROR_COOLDOWN
+      ) {
+        console.log(`Skipping pollen API request due to recent error (${Math.round((now - lastErrorTimestamp["pollen"]) / 60000)} minutes ago)`);
+        return "観測データなし";
       }
       
       // 現在の季節に合わせて花粉の種類を特定
@@ -95,8 +119,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       if (!response.ok) {
+        // APIエラー発生時にタイムスタンプを記録
+        lastErrorTimestamp["pollen"] = Date.now();
         console.error(`Brave Search API responded with status ${response.status}`);
         return "観測データなし";
+      }
+      
+      // エラーが解消されたらタイムスタンプをリセット
+      if (lastErrorTimestamp["pollen"]) {
+        delete lastErrorTimestamp["pollen"];
       }
       
       const data = await response.json();
@@ -122,6 +153,8 @@ ${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋
       
       return response_text.trim() || "観測データなし";
     } catch (error) {
+      // エラー発生時にタイムスタンプを記録
+      lastErrorTimestamp["pollen"] = Date.now();
       console.error("Error searching for pollen info:", error);
       return "データ取得エラー";
     }
@@ -360,6 +393,21 @@ ${cityName}${suffix}の天気情報です。データは ${location.localtime} �
   async function getWeatherDataWithCache(cityId: string, forceRefresh: boolean = false): Promise<{ text: string, fromCache: boolean }> {
     const targetCity = getCityApiName(cityId);
     const now = Date.now();
+    
+    // エラークールダウン期間中ならAPIリクエストをスキップ
+    if (
+      lastErrorTimestamp["weather"] && 
+      now - lastErrorTimestamp["weather"] < ERROR_COOLDOWN &&
+      !forceRefresh
+    ) {
+      console.log(`Skipping API request due to recent error (${Math.round((now - lastErrorTimestamp["weather"]) / 60000)} minutes ago)`);
+      if (weatherCache[targetCity]) {
+        return {
+          text: weatherCache[targetCity].formattedData,
+          fromCache: true
+        };
+      }
+    }
     
     // キャッシュにデータがあるか確認（forceRefreshがtrueの場合はキャッシュを無視）
     if (!forceRefresh && weatherCache[targetCity] && now - weatherCache[targetCity].timestamp < CACHE_DURATION) {
