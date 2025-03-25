@@ -1,6 +1,7 @@
 import React from 'react';
 import WeatherInfo from './WeatherInfo';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface WeatherDisplayProps {
   showWeather: boolean;
@@ -26,31 +27,35 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   }
 
   return (
-    <div className="w-full max-w-lg animate-in fade-in duration-300">
+    <div className="w-full max-w-2xl animate-in fade-in duration-300">
       {loading && (
-        <div className="bg-white rounded-xl shadow-md p-6 text-center">
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-muted-foreground text-lg">データ取得中...</p>
-          </div>
-        </div>
+        <Card className="shadow-md text-center border-none">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-muted-foreground text-lg">データ取得中...</p>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {error && !loading && (
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-start p-4 bg-destructive bg-opacity-10 rounded-lg">
-            <div className="text-2xl text-destructive mr-3 mt-1">⚠️</div>
-            <div>
-              <h3 className="font-bold text-destructive">エラーが発生しました</h3>
-              <p className="text-foreground mt-1">{error}</p>
+        <Card className="shadow-md border-none">
+          <CardContent className="pt-6">
+            <div className="flex items-start p-4 bg-destructive bg-opacity-10 rounded-lg">
+              <div className="text-2xl text-destructive mr-3 mt-1">⚠️</div>
+              <div>
+                <h3 className="font-bold text-destructive">エラーが発生しました</h3>
+                <p className="text-foreground mt-1">{error}</p>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {!loading && !error && weatherData && (
         <>
-          <div className="flex justify-end mb-1">
+          <div className="flex justify-end mb-2">
             {fromCache && (
               <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                 <span className="inline-block mr-1">🕒</span>
@@ -68,7 +73,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
           <WeatherInfo weatherData={weatherData} />
           
           {isAIFallback && (
-            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-amber-700 text-sm">
                 <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
               </p>

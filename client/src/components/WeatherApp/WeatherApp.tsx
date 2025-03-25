@@ -80,14 +80,14 @@ const WeatherApp: React.FC = () => {
   const selectedCity = getSelectedCity();
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6">
-      <header className="w-full max-w-lg text-center mb-8 mt-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+    <div className="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6 bg-gradient-to-b from-sky-50 to-white">
+      <header className="w-full max-w-2xl text-center mb-8 mt-6">
+        <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
           今日の天気
         </h1>
       </header>
 
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <div className="flex flex-wrap justify-center gap-2 mb-6 max-w-2xl">
         {SUPPORTED_CITIES.map(city => (
           <WeatherButton 
             key={city.id}
@@ -105,7 +105,7 @@ const WeatherApp: React.FC = () => {
             size="sm"
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 shadow-sm"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             最新の情報に更新
