@@ -136,11 +136,11 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
       <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-3'}`}>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">花粉</p>
-          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{pollen}</p>
+          <p className={`${isMobile ? 'text-sm font-medium break-words' : 'text-base break-words'}`}>{pollen}</p>
         </div>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">黄砂</p>
-          <p className={`${isMobile ? 'text-sm font-medium' : 'text-base'}`}>{yellowSand}</p>
+          <p className={`${isMobile ? 'text-sm font-medium break-words' : 'text-base break-words'}`}>{yellowSand}</p>
         </div>
         <div className="touch-manipulation">
           <p className="text-sm text-gray-500 mb-1">PM2.5</p>
