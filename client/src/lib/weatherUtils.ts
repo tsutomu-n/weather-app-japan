@@ -15,14 +15,17 @@ export interface WeatherResult {
 }
 
 // Function to fetch weather data from the server
-export const fetchWeatherData = async (): Promise<WeatherResult> => {
+export const fetchWeatherData = async (city?: string): Promise<WeatherResult> => {
   try {
     const response = await fetch('/api/weather', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt: PROMPT_TEMPLATE }),
+      body: JSON.stringify({ 
+        prompt: PROMPT_TEMPLATE,
+        city: city || 'sapporo' 
+      }),
     });
 
     if (!response.ok) {
