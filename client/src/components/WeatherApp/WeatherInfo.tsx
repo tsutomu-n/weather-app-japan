@@ -37,9 +37,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
   const currentWeather = extractInfo(weatherData, '**☁️☔️ 現在の天気:**', ['**🌡️']);
   const currentTemp = extractInfo(weatherData, '**🌡️ 現在の気温:**', ['**📅']);
   const forecastTemp = extractInfo(weatherData, '**📅 今日の予想気温:**', ['**🌧']);
-  const rainProb = extractInfo(weatherData, '**🌧 降水確率:**', ['**☀️']);
-  const sunrise = extractInfo(weatherData, '**☀️ 日の出:**', ['**🌙']);
-  const sunset = extractInfo(weatherData, '**🌙 日の入り:**', ['**⏰', '**🍃']);
+  const rainProb = extractInfo(weatherData, '**🌧 降水確率:**', ['**🍃', '**⏰']);
   
   // 時間ごとの予報を抽出
   const hourlyForecastSection = extractInfo(weatherData, '**⏰ 時間ごとの予報:**', ['**🍃']);
@@ -86,16 +84,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="touch-manipulation">
-          <p className="text-sm text-gray-500 mb-1">日の出</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{sunrise}</p>
-        </div>
-        <div className="touch-manipulation">
-          <p className="text-sm text-gray-500 mb-1">日の入り</p>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{sunset}</p>
-        </div>
-      </div>
+      {/* 日の出・日の入り情報は削除 */}
       
       {hourlyForecasts.length > 0 && (
         <>
