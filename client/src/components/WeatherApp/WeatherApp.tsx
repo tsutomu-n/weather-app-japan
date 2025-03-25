@@ -42,9 +42,6 @@ const WeatherApp: React.FC = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           日本の都市 天気情報
         </h1>
-        <p className="text-muted-foreground mt-2">
-          WeatherAPIを使用した実際の天気情報サービス
-        </p>
       </header>
 
       <div className="flex flex-wrap justify-center gap-2 mb-6">
@@ -71,10 +68,8 @@ const WeatherApp: React.FC = () => {
       />
       
       <footer className="mt-auto py-6 text-center text-muted-foreground text-sm">
-        <p>© {new Date().getFullYear()} 日本気象情報サービス</p>
-        <p className="mt-1">Powered by React + WeatherAPI</p>
         {isAIFallback && (
-          <p className="mt-1 text-xs text-amber-500">※現在、WeatherAPIに接続できないため、Google Geminiの生成データを表示しています</p>
+          <p className="mt-1 text-xs text-amber-500">※現在、APIに接続できないため、バックアップデータを表示しています</p>
         )}
       </footer>
     </div>

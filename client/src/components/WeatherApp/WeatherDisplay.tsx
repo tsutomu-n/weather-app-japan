@@ -53,7 +53,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
           {isAIFallback && (
             <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-amber-700 text-sm">
-                <span className="font-semibold">注意:</span> 現在、WeatherAPIに接続できないため、AI生成データを表示しています。
+                <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
               </p>
             </div>
           )}
@@ -61,7 +61,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
             <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-lg">
               <p className="text-blue-700 text-xs text-center">
                 <span className="inline-block mr-1">🕒</span>
-                {cachedAt}にキャッシュされたデータを表示しています（3時間ごとに更新）
+                {cachedAt} キャッシュデータ（3時間有効）
               </p>
             </div>
           )}
