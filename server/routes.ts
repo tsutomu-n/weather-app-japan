@@ -21,8 +21,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to fetch actual weather data from WeatherAPI
   async function fetchWeatherData(city = "Sapporo") {
     try {
+      console.log(`Fetching weather data for city: ${city}`);
+      
+      // For Takasaki, we need to specify the country to ensure we get the correct city
+      const cityQuery = city === "Takasaki" ? "Takasaki,Japan" : city;
+      
       const response = await fetch(
-        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}&days=1&aqi=yes&lang=ja`
+        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${encodeURIComponent(cityQuery)}&days=1&aqi=yes&lang=ja`
       );
       
       if (!response.ok) {
@@ -139,6 +144,8 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     } else {
       cityName = "札幌";
     }
+    
+    console.log(`Formatting weather data for city: ${cityName} (param: ${cityParam})`);
     
     // Get air quality data if available
     const aqi = current.air_quality || {};
