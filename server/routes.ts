@@ -4,9 +4,10 @@ import { storage } from "./storage";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize Google AI with API key and WeatherAPI key
+  // Initialize API keys
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
   const weatherApiKey = process.env.WEATHERAPI_KEY || "";
+  const braveSearchApiKey = process.env.BRAVE_SEARCH_API_KEY || "";
   let model: any;
 
   // Get or initialize the model
@@ -34,9 +35,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
       throw error;
     }
   }
+  
+  // Helper function to search for pollen information using Brave Search API
+  async function searchPollenInfo() {
+    try {
+      if (!braveSearchApiKey) {
+        return "データなし (APIキーが設定されていません)";
+      }
+      
+      // Create URL with query parameters
+      const searchParams = new URLSearchParams({
+        q: "今日 札幌 花粉情報 速報 花粉飛散状況",
+        country: "jp",
+        search_lang: "ja",
+        count: "3",
+        freshness: "pd"  // Past day for fresh results
+      });
+      
+      const response = await fetch(
+        `https://api.search.brave.com/res/v1/web/search?${searchParams.toString()}`, 
+        {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
+            "X-Subscription-Token": braveSearchApiKey
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        console.error(`Brave Search API responded with status ${response.status}`);
+        return "データなし (検索APIエラー)";
+      }
+      
+      const data = await response.json();
+      if (!data.web || !data.web.results || data.web.results.length === 0) {
+        return "本日の情報なし";
+      }
+      
+      // Use Google AI to summarize the search results
+      const model = getModel();
+      const prompt = `次の検索結果をもとに、今日の札幌の花粉情報を日本語で30文字以内で要約してください。花粉の種類と飛散状況に焦点を当ててください：
+      
+${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋: ${r.description}`).join('\n')}`;
+      
+      const result = await model.generateContent(prompt);
+      const response_text = await result.response.text();
+      
+      return response_text.trim() || "少ない (検索結果より推定)";
+    } catch (error) {
+      console.error("Error searching for pollen info:", error);
+      return "少ない (推定)";
+    }
+  }
+  
+  // Helper function to search for PM2.5 and yellow sand information using Brave Search API
+  async function searchYellowSandInfo() {
+    try {
+      if (!braveSearchApiKey) {
+        return "データなし (APIキーが設定されていません)";
+      }
+      
+      // Create URL with query parameters
+      const searchParams = new URLSearchParams({
+        q: "今日 札幌 黄砂 飛来状況 観測速報",
+        country: "jp",
+        search_lang: "ja",
+        count: "3",
+        freshness: "pd"  // Past day for fresh results
+      });
+      
+      const response = await fetch(
+        `https://api.search.brave.com/res/v1/web/search?${searchParams.toString()}`, 
+        {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
+            "X-Subscription-Token": braveSearchApiKey
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        console.error(`Brave Search API responded with status ${response.status}`);
+        return "データなし (検索APIエラー)";
+      }
+      
+      const data = await response.json();
+      if (!data.web || !data.web.results || data.web.results.length === 0) {
+        return "本日の情報なし";
+      }
+      
+      // Use Google AI to summarize the search results
+      const model = getModel();
+      const prompt = `次の検索結果をもとに、今日の札幌の黄砂の状況を日本語で30文字以内で要約してください：
+      
+${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋: ${r.description}`).join('\n')}`;
+      
+      const result = await model.generateContent(prompt);
+      const response_text = await result.response.text();
+      
+      return response_text.trim() || "影響なし (検索結果より推定)";
+    } catch (error) {
+      console.error("Error searching for yellow sand info:", error);
+      return "影響なし (推定)";
+    }
+  }
 
   // Format weather data into a nice Markdown format
-  function formatWeatherData(data: any) {
+  async function formatWeatherData(data: any) {
     const current = data.current;
     const location = data.location;
     const forecast = data.forecast?.forecastday?.[0];
@@ -80,6 +189,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
+    // Fetch additional information using Brave Search API
+    const pollenInfo = await searchPollenInfo();
+    const yellowSandInfo = await searchYellowSandInfo();
+    
     // Format the output in Markdown
     return `# 今日の札幌の天気
 
@@ -90,9 +203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 **💧 湿度:** ${current.humidity} %
 **⬇️ 気圧:** ${current.pressure_mb} hPa
 
-**🌲 花粉:** データなし
+**🌲 花粉:** ${pollenInfo}
 
-**💛 黄砂:** データなし
+**💛 黄砂:** ${yellowSandInfo}
 
 **🌫 PM2.5:** ${pm25} μg/m³
 
