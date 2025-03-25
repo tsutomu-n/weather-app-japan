@@ -229,9 +229,7 @@ ${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋
       const day = forecast.day;
       forecastInfo = `
 **📅 今日の予想気温:** 最高 ${day.maxtemp_c}℃ / 最低 ${day.mintemp_c}℃
-**🌧 降水確率:** ${forecast.day.daily_chance_of_rain}%
-**☀️ 日の出:** ${forecast.astro.sunrise}
-**🌙 日の入り:** ${forecast.astro.sunset}`;
+**🌧 降水確率:** ${forecast.day.daily_chance_of_rain}%`;
       
       // Add hourly forecast if available
       if (forecast.hour && forecast.hour.length > 0) {
