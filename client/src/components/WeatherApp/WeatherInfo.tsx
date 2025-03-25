@@ -20,6 +20,7 @@ interface WeatherInfoProps {
   weatherData: string;
   isMobile?: boolean;
   cardType?: 'basic' | 'forecast' | 'environment' | 'all';
+  onlyShowSpecificCard?: boolean; // 特定のカードのみ表示する場合にtrueを設定
 }
 
 // マークダウンテキストから情報を抽出する関数
@@ -46,7 +47,8 @@ const extractInfo = (text: string, startPattern: string, endPatterns: string[] =
 const WeatherInfo: React.FC<WeatherInfoProps> = ({ 
   weatherData, 
   isMobile = false,
-  cardType = 'all'
+  cardType = 'all',
+  onlyShowSpecificCard = false
 }) => {
 
   // マークダウンから情報を抽出
@@ -248,13 +250,130 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
     </div>
   );
   
+  // 環境データコンポーネント（すべてのカードで環境データを表示するため、個別にコンポーネント化）
+  const EnvironmentDataSection = () => (
+    <div className="mt-4 pt-4 border-t border-gray-100/60">
+      <div className="flex items-center mb-3">
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-1.5 rounded-full shadow-sm mr-2">
+          <Sun className="h-4 w-4 text-white" />
+        </div>
+        <p className="text-sm text-gray-600 font-medium">環境情報</p>
+      </div>
+      
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-3'}`}>
+        <div className="touch-manipulation bg-green-50/50 p-3 rounded-lg shadow-sm">
+          <div className="flex items-center mb-1">
+            <Flower2 className="h-3.5 w-3.5 text-green-700 mr-1.5" />
+            <p className="text-sm text-green-700 font-medium">花粉</p>
+          </div>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} break-words min-h-[2rem]`}>{pollen || "データがありません"}</p>
+        </div>
+        <div className="touch-manipulation bg-amber-50/50 p-3 rounded-lg shadow-sm">
+          <div className="flex items-center mb-1">
+            <Wind className="h-3.5 w-3.5 text-amber-700 mr-1.5" />
+            <p className="text-sm text-amber-700 font-medium">黄砂</p>
+          </div>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} break-words min-h-[2rem]`}>{yellowSand || "データがありません"}</p>
+        </div>
+        <div className="touch-manipulation bg-blue-50/50 p-3 rounded-lg shadow-sm">
+          <div className="flex items-center mb-1">
+            <Cloud className="h-3.5 w-3.5 text-blue-700 mr-1.5" />
+            <p className="text-sm text-blue-700 font-medium">PM2.5</p>
+          </div>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} min-h-[2rem]`}>{pm25 || "データがありません"}</p>
+        </div>
+      </div>
+    </div>
+  );
+
   // 特定のカードタイプを表示
-  if (cardType === 'basic') {
+  if (cardType === 'basic' && onlyShowSpecificCard) {
+    return (
+      <div className={`px-2 ${isMobile ? 'py-3' : 'py-4'}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 divide-y md:divide-y-0 md:divide-x divide-gray-100/60">
+          <div className="touch-manipulation py-3 md:py-0 md:pr-3">
+            <div className="flex items-start">
+              <div className="bg-gradient-to-br from-blue-500 to-sky-600 p-1.5 rounded-full shadow-sm mr-2.5">
+                <Cloud className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1">現在の天気</p>
+                <p className="text-lg font-medium">{currentWeather}</p>
+              </div>
+            </div>
+          </div>
+          <div className="touch-manipulation py-3 md:py-0 md:pl-3">
+            <div className="flex items-start">
+              <div className="bg-gradient-to-br from-blue-500 to-sky-600 p-1.5 rounded-full shadow-sm mr-2.5">
+                <Thermometer className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1">現在の気温</p>
+                <p className="text-lg font-medium">{currentTemp}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <EnvironmentDataSection />
+      </div>
+    );
+  } else if (cardType === 'forecast' && onlyShowSpecificCard) {
+    return (
+      <div className={`px-2 ${isMobile ? 'py-3' : 'py-4'}`}>
+        <div className="grid grid-cols-2 gap-4 divide-y md:divide-y-0 md:divide-x divide-gray-100/60">
+          <div className="touch-manipulation py-3 md:py-0 md:pr-3">
+            <div className="flex items-start">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-1.5 rounded-full shadow-sm mr-2.5">
+                <Calendar className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1">予想気温</p>
+                <p className={`${isMobile ? 'text-sm font-medium' : 'text-base font-medium'}`}>{forecastTemp}</p>
+              </div>
+            </div>
+          </div>
+          <div className="touch-manipulation py-3 md:py-0 md:pl-3">
+            <div className="flex items-start">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-1.5 rounded-full shadow-sm mr-2.5">
+                <Droplets className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 mb-1">降水確率</p>
+                <p className={`${isMobile ? 'text-sm font-medium' : 'text-base font-medium'}`}>{rainProb}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {hourlyForecasts.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-100/60">
+            <div className="flex items-center mb-3">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-1.5 rounded-full shadow-sm mr-2">
+                <Clock className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-sm text-gray-600 font-medium">時間ごとの予報</p>
+            </div>
+            <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
+              {hourlyForecasts.map((forecast, index) => (
+                <div key={index} className="flex items-center py-1.5 touch-manipulation">
+                  <div className="w-1 h-1 bg-amber-400 rounded-full mr-2"></div>
+                  <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>
+                    {forecast.replace('* ', '')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <EnvironmentDataSection />
+      </div>
+    );
+  } else if (cardType === 'environment') {
+    return <EnvironmentCard />;
+  } else if (cardType === 'basic') {
     return <BasicInfoCard />;
   } else if (cardType === 'forecast') {
     return <ForecastCard />;
-  } else if (cardType === 'environment') {
-    return <EnvironmentCard />;
   }
   
   // すべてのカードを表示（デフォルト）

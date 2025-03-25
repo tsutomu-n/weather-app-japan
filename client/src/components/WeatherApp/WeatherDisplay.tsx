@@ -95,7 +95,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
                   基本情報
                 </AccordionTrigger>
                 <AccordionContent className="pt-3">
-                  <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="basic" />
+                  <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="basic" onlyShowSpecificCard={true} />
                 </AccordionContent>
               </AccordionItem>
               
@@ -104,7 +104,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
                   今日の予報
                 </AccordionTrigger>
                 <AccordionContent className="pt-3">
-                  <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="forecast" />
+                  <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="forecast" onlyShowSpecificCard={true} />
                 </AccordionContent>
               </AccordionItem>
               
