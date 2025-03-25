@@ -6,13 +6,15 @@ interface WeatherDisplayProps {
   loading: boolean;
   error: string | null;
   weatherData: string;
+  isAIFallback?: boolean;
 }
 
 const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ 
   showWeather, 
   loading, 
   error, 
-  weatherData 
+  weatherData,
+  isAIFallback = false
 }) => {
   if (!showWeather) {
     return null;
@@ -24,7 +26,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
         <div className="bg-white rounded-xl shadow-md p-6 text-center">
           <div className="flex flex-col items-center justify-center py-8">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-muted-foreground text-lg">生成中...</p>
+            <p className="text-muted-foreground text-lg">データ取得中...</p>
           </div>
         </div>
       )}
@@ -42,7 +44,16 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
       )}
 
       {!loading && !error && weatherData && (
-        <WeatherInfo weatherData={weatherData} />
+        <>
+          <WeatherInfo weatherData={weatherData} />
+          {isAIFallback && (
+            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-amber-700 text-sm">
+                <span className="font-semibold">注意:</span> 現在、WeatherAPIに接続できないため、AI生成データを表示しています。
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

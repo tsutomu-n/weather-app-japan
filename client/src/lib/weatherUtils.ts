@@ -1,14 +1,21 @@
 import { PROMPT_TEMPLATE } from "../constants";
 
-// Response type from the Gemini API
+// Response type from the Weather API or Gemini fallback
 export interface GenerateResponse {
   text?: string;
   error?: string;
   details?: string;
+  isAIFallback?: boolean;
+}
+
+// Return type for weather data
+export interface WeatherResult {
+  text: string;
+  isFallback: boolean;
 }
 
 // Function to fetch weather data from the server
-export const fetchWeatherData = async (): Promise<string> => {
+export const fetchWeatherData = async (): Promise<WeatherResult> => {
   try {
     const response = await fetch('/api/weather', {
       method: 'POST',
@@ -32,7 +39,10 @@ export const fetchWeatherData = async (): Promise<string> => {
       throw new Error("No text received from API");
     }
     
-    return data.text;
+    return {
+      text: data.text,
+      isFallback: !!data.isAIFallback
+    };
 
   } catch (error: any) {
     console.error('Error fetching weather data:', error);
