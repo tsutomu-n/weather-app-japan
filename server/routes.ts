@@ -153,10 +153,22 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     const forecast = data.forecast?.forecastday?.[0];
     
     // 都市のIDを推測 (APIフォーマットから)
-    const cityId = cityParam.includes("Takasaki") ? "takasaki" : 
-                   cityParam === "Tokyo" ? "tokyo" :
-                   cityParam === "Osaka" ? "osaka" :
-                   cityParam === "Fukuoka" ? "fukuoka" : "sapporo";
+    let cityId = "sapporo"; // デフォルト値
+    
+    // APIパラメータに基づいて都市IDを判定
+    if (cityParam.includes("Shimonita")) {
+      cityId = "shimonita";
+    } else if (cityParam.includes("Takasaki")) {
+      cityId = "takasaki";
+    } else if (cityParam === "Tokyo") {
+      cityId = "tokyo";
+    } else if (cityParam === "Osaka") {
+      cityId = "osaka";
+    } else if (cityParam === "Fukuoka") {
+      cityId = "fukuoka";
+    }
+    
+    console.log(`判定された都市ID: ${cityId} (from param: ${cityParam})`);
     
     // 日本語の都市名を取得
     const cityName = getCityJapaneseName(cityId);
@@ -251,6 +263,13 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
       yellowSandInfo = defaultYellowSandInfo;
     }
     
+    // 市町村の接尾辞を決定
+    let suffix = "市";
+    if (cityId === "shimonita") {
+      suffix = "町"; // 下仁田町
+    }
+    // 将来的に村を追加する場合はここに追加
+
     // Format the output in Markdown
     return `# 今日の${cityName}の天気
 
@@ -268,7 +287,7 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
 **🌫 PM2.5:** ${pm25} μg/m³
 
 **📝 一言:**
-${cityName}市の天気情報です。データは ${location.localtime} に更新されました。
+${cityName}${suffix}の天気情報です。データは ${location.localtime} に更新されました。
 `;
   }
 
@@ -301,12 +320,12 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
   }
 
   // キャッシュからデータを取得するか、新しいデータをフェッチする関数
-  async function getWeatherDataWithCache(cityId: string): Promise<{ text: string, fromCache: boolean }> {
+  async function getWeatherDataWithCache(cityId: string, forceRefresh: boolean = false): Promise<{ text: string, fromCache: boolean }> {
     const targetCity = getCityApiName(cityId);
     const now = Date.now();
     
-    // キャッシュにデータがあるか確認
-    if (weatherCache[targetCity] && now - weatherCache[targetCity].timestamp < CACHE_DURATION) {
+    // キャッシュにデータがあるか確認（forceRefreshがtrueの場合はキャッシュを無視）
+    if (!forceRefresh && weatherCache[targetCity] && now - weatherCache[targetCity].timestamp < CACHE_DURATION) {
       console.log(`Using cached data for ${targetCity} (cached ${Math.round((now - weatherCache[targetCity].timestamp) / 60000)} minutes ago)`);
       return { 
         text: weatherCache[targetCity].formattedData, 
@@ -315,7 +334,9 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
     }
     
     // キャッシュにデータがないか期限切れの場合、新しいデータを取得
-    console.log(`Cache miss or expired for ${targetCity}, fetching fresh data...`);
+    const refreshReason = forceRefresh ? "force refresh requested" : "cache miss or expired";
+    console.log(`${refreshReason} for ${targetCity}, fetching fresh data...`);
+    
     const weatherData = await fetchWeatherData(targetCity);
     const formattedWeather = await formatWeatherData(weatherData, targetCity);
     
@@ -332,6 +353,15 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
     };
   }
 
+  // キャッシュをクリアするエンドポイント（デバッグ用）
+  app.post('/api/clear-cache', (req, res) => {
+    Object.keys(weatherCache).forEach(key => {
+      delete weatherCache[key];
+    });
+    console.log('Weather cache cleared');
+    return res.json({ success: true, message: 'Cache cleared' });
+  });
+
   // Weather API endpoint - now using real data with caching
   app.post('/api/weather', async (req, res) => {
     try {
@@ -340,10 +370,10 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
         throw new Error("Weather API key is not configured");
       }
       
-      const { city } = req.body;
+      const { city, forceRefresh } = req.body;
       
-      // キャッシュを活用してデータを取得
-      const { text, fromCache } = await getWeatherDataWithCache(city);
+      // キャッシュを活用してデータを取得（forceRefreshがtrueの場合はキャッシュを無視）
+      const { text, fromCache } = await getWeatherDataWithCache(city, !!forceRefresh);
       
       // API形式の都市名を取得
       const apiCityName = getCityApiName(city);

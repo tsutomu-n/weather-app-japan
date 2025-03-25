@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import WeatherButton from './WeatherButton';
 import WeatherDisplay from './WeatherDisplay';
-import { fetchWeatherData } from '@/lib/weatherUtils';
+import { fetchWeatherData, clearWeatherCache } from '@/lib/weatherUtils';
 import { SUPPORTED_CITIES, CityConfig, DEFAULT_CITY } from '@/constants';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 const WeatherApp: React.FC = () => {
   const [showWeather, setShowWeather] = useState(false);
@@ -49,6 +51,31 @@ const WeatherApp: React.FC = () => {
     }
   };
 
+  // リフレッシュ処理（キャッシュを無視して最新データを取得）
+  const handleRefresh = async () => {
+    if (loading) return; // 処理中なら何もしない
+    
+    const cityId = selectedCityId;
+    setLoading(true);
+    
+    try {
+      // 強制リフレッシュでデータを取得
+      const { text, isFallback, fromCache: cached, cachedAt: cachedTime } = 
+        await fetchWeatherData(cityId, true);
+      
+      setWeatherData(text);
+      setIsAIFallback(!!isFallback);
+      setFromCache(!!cached);
+      if (cachedTime !== undefined) {
+        setCachedAt(cachedTime);
+      }
+    } catch (error: any) {
+      setError(error.message || 'リフレッシュ処理中にエラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // 選択された都市の情報
   const selectedCity = getSelectedCity();
 
@@ -70,6 +97,21 @@ const WeatherApp: React.FC = () => {
           />
         ))}
       </div>
+      
+      {showWeather && (
+        <div className="flex justify-center mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center gap-1"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            最新の情報に更新
+          </Button>
+        </div>
+      )}
 
       <WeatherDisplay 
         showWeather={showWeather}

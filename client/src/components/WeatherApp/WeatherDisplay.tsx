@@ -1,5 +1,6 @@
 import React from 'react';
 import WeatherInfo from './WeatherInfo';
+import { Badge } from '@/components/ui/badge';
 
 interface WeatherDisplayProps {
   showWeather: boolean;
@@ -49,19 +50,27 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
 
       {!loading && !error && weatherData && (
         <>
+          <div className="flex justify-end mb-1">
+            {fromCache && (
+              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                <span className="inline-block mr-1">🕒</span>
+                {cachedAt} キャッシュ（3時間有効）
+              </Badge>
+            )}
+            {!fromCache && (
+              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                <span className="inline-block mr-1">✓</span>
+                最新データ
+              </Badge>
+            )}
+          </div>
+          
           <WeatherInfo weatherData={weatherData} />
+          
           {isAIFallback && (
             <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-amber-700 text-sm">
                 <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
-              </p>
-            </div>
-          )}
-          {fromCache && cachedAt && (
-            <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-lg">
-              <p className="text-blue-700 text-xs text-center">
-                <span className="inline-block mr-1">🕒</span>
-                {cachedAt} キャッシュデータ（3時間有効）
               </p>
             </div>
           )}

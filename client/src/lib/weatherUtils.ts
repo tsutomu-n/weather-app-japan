@@ -18,8 +18,30 @@ export interface WeatherResult {
   cachedAt?: string | null;
 }
 
+// キャッシュをクリアする関数
+export const clearWeatherCache = async (): Promise<boolean> => {
+  try {
+    const response = await fetch('/api/clear-cache', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    return false;
+  }
+};
+
 // Function to fetch weather data from the server
-export const fetchWeatherData = async (city?: string): Promise<WeatherResult> => {
+export const fetchWeatherData = async (city?: string, forceRefresh = false): Promise<WeatherResult> => {
   try {
     const response = await fetch('/api/weather', {
       method: 'POST',
@@ -28,7 +50,8 @@ export const fetchWeatherData = async (city?: string): Promise<WeatherResult> =>
       },
       body: JSON.stringify({ 
         prompt: PROMPT_TEMPLATE,
-        city: city || 'sapporo' 
+        city: city || 'sapporo',
+        forceRefresh: forceRefresh // キャッシュを無視して新しいデータを取得
       }),
     });
 
