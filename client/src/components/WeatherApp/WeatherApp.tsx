@@ -1,19 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import WeatherButton from './WeatherButton';
+import React, { useState, useEffect } from 'react';
 import WeatherDisplay from './WeatherDisplay';
-import { fetchWeatherData, clearWeatherCache } from '@/lib/weatherUtils';
-import { SUPPORTED_CITIES, CityConfig, DEFAULT_CITY } from '@/constants';
+import { fetchWeatherData } from '@/lib/weatherUtils';
+import { DEFAULT_CITY } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { type CarouselApi } from "@/components/ui/carousel";
 
 const WeatherApp: React.FC = () => {
   const [showWeather, setShowWeather] = useState(false);
@@ -23,30 +14,16 @@ const WeatherApp: React.FC = () => {
   const [isAIFallback, setIsAIFallback] = useState(false);
   const [fromCache, setFromCache] = useState(false);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
-  const [selectedCityId, setSelectedCityId] = useState<string>(DEFAULT_CITY.id);
 
-  // 現在選択されている都市の設定を取得
-  const getSelectedCity = (): CityConfig => {
-    return SUPPORTED_CITIES.find(city => city.id === selectedCityId) || DEFAULT_CITY;
-  };
-
-  const getWeatherData = async (cityId: string) => {
-    // cityIdに対応する都市設定を検索
-    const cityConfig = SUPPORTED_CITIES.find(city => city.id === cityId);
-    if (!cityConfig) {
-      setError('指定された都市が見つかりません');
-      return;
-    }
-
+  const getWeatherData = async (forceRefresh = false) => {
     setLoading(true);
     setShowWeather(true);
     setWeatherData('');
     setError(null);
     setIsAIFallback(false);
-    setSelectedCityId(cityId);
 
     try {
-      const { text, isFallback, fromCache: cached, cachedAt: cachedTime } = await fetchWeatherData(cityId);
+      const { text, isFallback, fromCache: cached, cachedAt: cachedTime } = await fetchWeatherData(DEFAULT_CITY.id, forceRefresh);
       setWeatherData(text);
       setIsAIFallback(!!isFallback);
       setFromCache(!!cached);
@@ -54,7 +31,7 @@ const WeatherApp: React.FC = () => {
         setCachedAt(cachedTime);
       }
     } catch (error: any) {
-      setError(error.message || 'Unknown error occurred');
+      setError(error.message || 'データの取得中にエラーが発生しました');
     } finally {
       setLoading(false);
     }
@@ -63,42 +40,28 @@ const WeatherApp: React.FC = () => {
   // リフレッシュ処理（キャッシュを無視して最新データを取得）
   const handleRefresh = async () => {
     if (loading) return; // 処理中なら何もしない
-    
-    const cityId = selectedCityId;
-    setLoading(true);
-    
-    try {
-      // 強制リフレッシュでデータを取得
-      const { text, isFallback, fromCache: cached, cachedAt: cachedTime } = 
-        await fetchWeatherData(cityId, true);
-      
-      setWeatherData(text);
-      setIsAIFallback(!!isFallback);
-      setFromCache(!!cached);
-      if (cachedTime !== undefined) {
-        setCachedAt(cachedTime);
-      }
-    } catch (error: any) {
-      setError(error.message || 'リフレッシュ処理中にエラーが発生しました');
-    } finally {
-      setLoading(false);
-    }
+    await getWeatherData(true); // 強制リフレッシュ
   };
-  
-  // 選択された都市の情報
-  const selectedCity = getSelectedCity();
 
   const isMobile = useIsMobile();
 
   // 初期データの読み込み
   useEffect(() => {
-    if (!showWeather && SUPPORTED_CITIES.length > 0) {
-      getWeatherData(DEFAULT_CITY.id);
+    if (!showWeather) {
+      getWeatherData();
     }
   }, []);
 
-  // 選択された都市情報を取得（ここではデフォルト都市を使用）
-  const cityInfo = SUPPORTED_CITIES.find(city => city.id === selectedCityId) || DEFAULT_CITY;
+  // 定期的な更新 (5分ごと) - ユーザーが長時間アプリを開いている場合
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading && showWeather) {
+        getWeatherData(); // 自動更新はキャッシュを優先
+      }
+    }, 5 * 60 * 1000); // 5分
+    
+    return () => clearInterval(interval);
+  }, [loading, showWeather]);
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-2 sm:p-6 bg-gradient-to-b from-sky-50 to-white">
@@ -107,7 +70,7 @@ const WeatherApp: React.FC = () => {
           今日の天気
         </h1>
         <div className="mt-2 text-lg font-medium text-gray-700">
-          {cityInfo.nameJa}
+          {DEFAULT_CITY.nameJa}
         </div>
       </header>
       
