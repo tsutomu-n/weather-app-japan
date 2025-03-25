@@ -8,16 +8,19 @@ const WeatherApp: React.FC = () => {
   const [weatherData, setWeatherData] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAIFallback, setIsAIFallback] = useState(false);
 
   const getWeatherData = async () => {
     setLoading(true);
     setShowWeather(true);
     setWeatherData('');
     setError(null);
+    setIsAIFallback(false);
 
     try {
-      const text = await fetchWeatherData();
+      const { text, isFallback } = await fetchWeatherData();
       setWeatherData(text);
+      setIsAIFallback(!!isFallback);
     } catch (error: any) {
       setError(error.message || 'Unknown error occurred');
     } finally {
@@ -32,7 +35,7 @@ const WeatherApp: React.FC = () => {
           札幌市天気情報
         </h1>
         <p className="text-muted-foreground mt-2">
-          Google AI Geminiを使用した天気情報サービス
+          WeatherAPIを使用した実際の天気情報サービス
         </p>
       </header>
 
@@ -43,11 +46,15 @@ const WeatherApp: React.FC = () => {
         loading={loading}
         error={error}
         weatherData={weatherData}
+        isAIFallback={isAIFallback}
       />
       
       <footer className="mt-auto py-6 text-center text-muted-foreground text-sm">
         <p>© {new Date().getFullYear()} 札幌天気情報サービス</p>
-        <p className="mt-1">Powered by React + Google AI Gemini</p>
+        <p className="mt-1">Powered by React + WeatherAPI</p>
+        {isAIFallback && (
+          <p className="mt-1 text-xs text-amber-500">※現在、WeatherAPIに接続できないため、Google Geminiの生成データを表示しています</p>
+        )}
       </footer>
     </div>
   );
