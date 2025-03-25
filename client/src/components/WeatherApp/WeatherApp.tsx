@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import WeatherButton from './WeatherButton';
 import WeatherDisplay from './WeatherDisplay';
 import { fetchWeatherData } from '@/lib/weatherUtils';
+import { SUPPORTED_CITIES, CityConfig, DEFAULT_CITY } from '@/constants';
 
 const WeatherApp: React.FC = () => {
   const [showWeather, setShowWeather] = useState(false);
@@ -11,18 +12,30 @@ const WeatherApp: React.FC = () => {
   const [isAIFallback, setIsAIFallback] = useState(false);
   const [fromCache, setFromCache] = useState(false);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string>('札幌');
+  const [selectedCityId, setSelectedCityId] = useState<string>(DEFAULT_CITY.id);
 
-  const getWeatherData = async (city: string) => {
+  // 現在選択されている都市の設定を取得
+  const getSelectedCity = (): CityConfig => {
+    return SUPPORTED_CITIES.find(city => city.id === selectedCityId) || DEFAULT_CITY;
+  };
+
+  const getWeatherData = async (cityId: string) => {
+    // cityIdに対応する都市設定を検索
+    const cityConfig = SUPPORTED_CITIES.find(city => city.id === cityId);
+    if (!cityConfig) {
+      setError('指定された都市が見つかりません');
+      return;
+    }
+
     setLoading(true);
     setShowWeather(true);
     setWeatherData('');
     setError(null);
     setIsAIFallback(false);
-    setSelectedCity(city === 'takasaki' ? '高崎' : '札幌');
+    setSelectedCityId(cityId);
 
     try {
-      const { text, isFallback, fromCache: cached, cachedAt: cachedTime } = await fetchWeatherData(city);
+      const { text, isFallback, fromCache: cached, cachedAt: cachedTime } = await fetchWeatherData(cityId);
       setWeatherData(text);
       setIsAIFallback(!!isFallback);
       setFromCache(!!cached);
@@ -36,6 +49,9 @@ const WeatherApp: React.FC = () => {
     }
   };
 
+  // 選択された都市の情報
+  const selectedCity = getSelectedCity();
+
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6">
       <header className="w-full max-w-lg text-center mb-8 mt-8">
@@ -45,16 +61,14 @@ const WeatherApp: React.FC = () => {
       </header>
 
       <div className="flex flex-wrap justify-center gap-2 mb-6">
-        <WeatherButton 
-          onClick={() => getWeatherData('sapporo')} 
-          cityName="札幌" 
-          variant="sapporo" 
-        />
-        <WeatherButton 
-          onClick={() => getWeatherData('takasaki')} 
-          cityName="高崎" 
-          variant="takasaki" 
-        />
+        {SUPPORTED_CITIES.map(city => (
+          <WeatherButton 
+            key={city.id}
+            onClick={() => getWeatherData(city.id)} 
+            city={city}
+            isSelected={city.id === selectedCityId}
+          />
+        ))}
       </div>
 
       <WeatherDisplay 

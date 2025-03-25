@@ -4,12 +4,14 @@ import { storage } from "./storage";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // キャッシュのインターフェース定義
+interface CachedWeatherData {
+  data: any;             // WeatherAPIからの生のデータ
+  timestamp: number;     // キャッシュされた時間（ミリ秒）
+  formattedData: string; // フォーマット済みの天気情報
+}
+
 interface WeatherCache {
-  [city: string]: {
-    data: any;
-    timestamp: number;
-    formattedData: string;
-  }
+  [city: string]: CachedWeatherData;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
