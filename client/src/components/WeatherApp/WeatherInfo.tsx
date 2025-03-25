@@ -26,8 +26,7 @@ const extractInfo = (text: string, startPattern: string, endPatterns: string[] =
   return text.substring(contentStartIndex, endIndex).trim();
 };
 
-const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData }) => {
-  const isMobile = useIsMobile();
+const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, isMobile = false }) => {
 
   // マークダウンから情報を抽出
   const currentWeather = extractInfo(weatherData, '**☁️☔️ 現在の天気:**', ['**🌡️']);

@@ -2,6 +2,7 @@ import React from 'react';
 import WeatherInfo from './WeatherInfo';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface WeatherDisplayProps {
   showWeather: boolean;
@@ -22,6 +23,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   fromCache = false,
   cachedAt = null
 }) => {
+  const isMobile = useIsMobile();
+  
   if (!showWeather) {
     return null;
   }
@@ -70,7 +73,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
             )}
           </div>
           
-          <WeatherInfo weatherData={weatherData} />
+          <WeatherInfo weatherData={weatherData} isMobile={isMobile} />
           
           {isAIFallback && (
             <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
