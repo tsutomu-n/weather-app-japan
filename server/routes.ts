@@ -19,10 +19,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Helper function to fetch actual weather data from WeatherAPI
-  async function fetchWeatherData() {
+  async function fetchWeatherData(city = "Sapporo") {
     try {
       const response = await fetch(
-        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=Sapporo&days=1&aqi=yes&lang=ja`
+        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}&days=1&aqi=yes&lang=ja`
       );
       
       if (!response.ok) {
@@ -31,20 +31,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return await response.json();
     } catch (error) {
-      console.error("Error fetching weather data:", error);
+      console.error(`Error fetching weather data for ${city}:`, error);
       throw error;
     }
   }
   
   // Helper function to search for pollen information using Brave Search API
-  async function searchPollenInfo() {
+  async function searchPollenInfo(city = "札幌") {
     try {
       if (!braveSearchApiKey) {
         return "データなし (APIキーが設定されていません)";
       }
       
       // Create simple querystring with minimal parameters
-      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent("札幌 花粉情報")}&count=3`;
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(`${city} 花粉情報`)}&count=3`;
       
       const response = await fetch(url, {
           method: "GET",
@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Use Google AI to summarize the search results
       const model = getModel();
-      const prompt = `次の検索結果をもとに、今日の札幌の花粉情報を日本語で30文字以内で要約してください。花粉の種類と飛散状況に焦点を当ててください：
+      const prompt = `次の検索結果をもとに、今日の${city}の花粉情報を日本語で30文字以内で要約してください。花粉の種類と飛散状況に焦点を当ててください：
       
 ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋: ${r.description}`).join('\n')}`;
       
@@ -82,14 +82,14 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
   }
   
   // Helper function to search for PM2.5 and yellow sand information using Brave Search API
-  async function searchYellowSandInfo() {
+  async function searchYellowSandInfo(city = "札幌") {
     try {
       if (!braveSearchApiKey) {
         return "データなし (APIキーが設定されていません)";
       }
       
       // Create simple querystring with minimal parameters
-      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent("札幌 黄砂")}&count=3`;
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(`${city} 黄砂`)}&count=3`;
       
       const response = await fetch(url, {
           method: "GET",
@@ -112,7 +112,7 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
       
       // Use Google AI to summarize the search results
       const model = getModel();
-      const prompt = `次の検索結果をもとに、今日の札幌の黄砂の状況を日本語で30文字以内で要約してください：
+      const prompt = `次の検索結果をもとに、今日の${city}の黄砂の状況を日本語で30文字以内で要約してください：
       
 ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋: ${r.description}`).join('\n')}`;
       
@@ -127,10 +127,18 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
   }
 
   // Format weather data into a nice Markdown format
-  async function formatWeatherData(data: any) {
+  async function formatWeatherData(data: any, cityParam = "Sapporo") {
     const current = data.current;
     const location = data.location;
     const forecast = data.forecast?.forecastday?.[0];
+    
+    // Get city name in Japanese
+    let cityName;
+    if (cityParam === "Takasaki") {
+      cityName = "高崎";
+    } else {
+      cityName = "札幌";
+    }
     
     // Get air quality data if available
     const aqi = current.air_quality || {};
@@ -201,7 +209,7 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     let yellowSandInfo;
     
     try {
-      pollenInfo = await searchPollenInfo();
+      pollenInfo = await searchPollenInfo(cityName);
       // If API returned an error message, use our season-based fallback
       if (pollenInfo.includes("データなし") || pollenInfo.includes("エラー")) {
         pollenInfo = defaultPollenInfo;
@@ -211,7 +219,7 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     }
     
     try {
-      yellowSandInfo = await searchYellowSandInfo();
+      yellowSandInfo = await searchYellowSandInfo(cityName);
       // If API returned an error message, use our season-based fallback
       if (yellowSandInfo.includes("データなし") || yellowSandInfo.includes("エラー")) {
         yellowSandInfo = defaultYellowSandInfo;
@@ -221,7 +229,7 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     }
     
     // Format the output in Markdown
-    return `# 今日の札幌の天気
+    return `# 今日の${cityName}の天気
 
 **☁️☔️ 現在の天気:** ${current.condition.text}
 **🌡️ 現在の気温:** ${current.temp_c}℃ / 体感温度 ${current.feelslike_c}℃${forecastInfo}
@@ -237,7 +245,7 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
 **🌫 PM2.5:** ${pm25} μg/m³
 
 **📝 一言:**
-札幌市の天気情報です。データは ${location.localtime} に更新されました。
+${cityName}市の天気情報です。データは ${location.localtime} に更新されました。
 `;
   }
 
@@ -248,12 +256,15 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
       if (!weatherApiKey) {
         throw new Error("Weather API key is not configured");
       }
+      
+      const { city } = req.body;
+      const targetCity = city === 'takasaki' ? 'Takasaki' : 'Sapporo';
 
       // Fetch actual weather data from the API
-      const weatherData = await fetchWeatherData();
+      const weatherData = await fetchWeatherData(targetCity);
       
       // Format the weather data with additional info from Brave Search
-      const formattedWeather = await formatWeatherData(weatherData);
+      const formattedWeather = await formatWeatherData(weatherData, targetCity);
 
       return res.json({ text: formattedWeather });
       
