@@ -1,10 +1,10 @@
-export const MODEL_NAME = "gemini-1.5-flash";
+export const MODEL_NAME = "gemini-2.0-flash-lite";
 export const PROMPT_TEMPLATE = `
   あなたは、札幌の天気情報を提供するアシスタントです。
   今日の札幌市（主に中央区）の天気、気温、気圧、花粉、黄砂、PM2.5の情報を、以下の形式で提供してください。
   データがない場合は、「不明」と記載してください。
 
-  # 🌸🌼 今日の札幌お天気情報 🌼🌸
+  # 今日の札幌の天気
 
   **☁️☔️ 天気:** [天気]
   **🌡️ 気温:** 最高 [最高気温]℃ / 最低 [最低気温]℃

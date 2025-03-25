@@ -11,7 +11,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get or initialize the model
   function getModel() {
     if (!model) {
-      model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
     }
     return model;
   }
