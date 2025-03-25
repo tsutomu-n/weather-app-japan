@@ -26,7 +26,9 @@ const WeatherApp: React.FC = () => {
       setWeatherData(text);
       setIsAIFallback(!!isFallback);
       setFromCache(!!cached);
-      setCachedAt(cachedTime);
+      if (cachedTime !== undefined) {
+        setCachedAt(cachedTime);
+      }
     } catch (error: any) {
       setError(error.message || 'Unknown error occurred');
     } finally {
@@ -64,6 +66,8 @@ const WeatherApp: React.FC = () => {
         error={error}
         weatherData={weatherData}
         isAIFallback={isAIFallback}
+        fromCache={fromCache}
+        cachedAt={cachedAt}
       />
       
       <footer className="mt-auto py-6 text-center text-muted-foreground text-sm">
