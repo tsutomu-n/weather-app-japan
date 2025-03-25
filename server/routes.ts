@@ -21,7 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   async function fetchWeatherData() {
     try {
       const response = await fetch(
-        `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=Sapporo&aqi=yes&lang=ja`
+        `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=Sapporo&days=1&aqi=yes&lang=ja`
       );
       
       if (!response.ok) {
@@ -39,16 +39,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   function formatWeatherData(data: any) {
     const current = data.current;
     const location = data.location;
+    const forecast = data.forecast?.forecastday?.[0];
     
     // Get air quality data if available
     const aqi = current.air_quality || {};
     const pm25 = aqi.pm2_5 ? Math.round(aqi.pm2_5) : "不明";
     
+    // Get forecast data if available
+    let forecastInfo = '';
+    if (forecast) {
+      const day = forecast.day;
+      forecastInfo = `
+**📅 今日の予想気温:** 最高 ${day.maxtemp_c}℃ / 最低 ${day.mintemp_c}℃
+**🌧 降水確率:** ${forecast.day.daily_chance_of_rain}%
+**☀️ 日の出:** ${forecast.astro.sunrise}
+**🌙 日の入り:** ${forecast.astro.sunset}`;
+      
+      // Add hourly forecast if available
+      if (forecast.hour && forecast.hour.length > 0) {
+        forecastInfo += '\n\n**⏰ 時間ごとの予報:**';
+        
+        // Get current hour
+        const now = new Date();
+        const currentHour = now.getHours();
+        
+        // Only show forecast for upcoming hours (next 6 hours)
+        const hoursToShow = [];
+        for (let i = currentHour; i < currentHour + 12; i += 3) {
+          const hourIndex = i % 24;
+          if (forecast.hour[hourIndex]) {
+            hoursToShow.push(forecast.hour[hourIndex]);
+          }
+        }
+        
+        // Format hourly forecast
+        hoursToShow.forEach(hour => {
+          const hourTime = new Date(hour.time).getHours();
+          forecastInfo += `\n* ${hourTime}時: ${hour.temp_c}℃ (${hour.condition.text})`;
+        });
+      }
+    }
+    
     // Format the output in Markdown
     return `# 今日の札幌の天気
 
-**☁️☔️ 天気:** ${current.condition.text}
-**🌡️ 気温:** 現在 ${current.temp_c}℃ / 体感温度 ${current.feelslike_c}℃
+**☁️☔️ 現在の天気:** ${current.condition.text}
+**🌡️ 現在の気温:** ${current.temp_c}℃ / 体感温度 ${current.feelslike_c}℃${forecastInfo}
+
 **🍃 風:** ${current.wind_kph} km/h (${current.wind_dir})
 **💧 湿度:** ${current.humidity} %
 **⬇️ 気圧:** ${current.pressure_mb} hPa
@@ -60,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 **🌫 PM2.5:** ${pm25} μg/m³
 
 **📝 一言:**
-札幌市の現在の天気です。データは ${location.localtime} に更新されました。
+札幌市の天気情報です。データは ${location.localtime} に更新されました。
 `;
   }
 
