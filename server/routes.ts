@@ -3,12 +3,25 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// キャッシュのインターフェース定義
+interface WeatherCache {
+  [city: string]: {
+    data: any;
+    timestamp: number;
+    formattedData: string;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize API keys
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
   const weatherApiKey = process.env.WEATHERAPI_KEY || "";
   const braveSearchApiKey = process.env.BRAVE_SEARCH_API_KEY || "";
   let model: any;
+  
+  // キャッシュの設定
+  const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3時間（ミリ秒）
+  const weatherCache: WeatherCache = {};
 
   // Get or initialize the model
   function getModel() {
@@ -256,7 +269,39 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
 `;
   }
 
-  // Weather API endpoint - now using real data
+  // キャッシュからデータを取得するか、新しいデータをフェッチする関数
+  async function getWeatherDataWithCache(city: string): Promise<{ text: string, fromCache: boolean }> {
+    const targetCity = city === 'takasaki' ? 'Takasaki' : 'Sapporo';
+    const now = Date.now();
+    
+    // キャッシュにデータがあるか確認
+    if (weatherCache[targetCity] && now - weatherCache[targetCity].timestamp < CACHE_DURATION) {
+      console.log(`Using cached data for ${targetCity} (cached ${Math.round((now - weatherCache[targetCity].timestamp) / 60000)} minutes ago)`);
+      return { 
+        text: weatherCache[targetCity].formattedData, 
+        fromCache: true 
+      };
+    }
+    
+    // キャッシュにデータがないか期限切れの場合、新しいデータを取得
+    console.log(`Cache miss or expired for ${targetCity}, fetching fresh data...`);
+    const weatherData = await fetchWeatherData(targetCity);
+    const formattedWeather = await formatWeatherData(weatherData, targetCity);
+    
+    // キャッシュを更新
+    weatherCache[targetCity] = {
+      data: weatherData,
+      formattedData: formattedWeather,
+      timestamp: now
+    };
+    
+    return { 
+      text: formattedWeather, 
+      fromCache: false 
+    };
+  }
+
+  // Weather API endpoint - now using real data with caching
   app.post('/api/weather', async (req, res) => {
     try {
       // Check if we have the weather API key
@@ -265,15 +310,18 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
       }
       
       const { city } = req.body;
-      const targetCity = city === 'takasaki' ? 'Takasaki' : 'Sapporo';
-
-      // Fetch actual weather data from the API
-      const weatherData = await fetchWeatherData(targetCity);
       
-      // Format the weather data with additional info from Brave Search
-      const formattedWeather = await formatWeatherData(weatherData, targetCity);
-
-      return res.json({ text: formattedWeather });
+      // キャッシュを活用してデータを取得
+      const { text, fromCache } = await getWeatherDataWithCache(city);
+      
+      // キャッシュ情報をログに出力
+      console.log(`Weather data for ${city} served ${fromCache ? 'from cache' : 'freshly fetched'}`);
+      
+      return res.json({ 
+        text, 
+        fromCache,
+        cachedAt: fromCache ? new Date(weatherCache[city === 'takasaki' ? 'Takasaki' : 'Sapporo'].timestamp).toLocaleTimeString() : null
+      });
       
     } catch (error) {
       console.error("Error fetching weather:", error);

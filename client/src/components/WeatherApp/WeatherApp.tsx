@@ -9,6 +9,8 @@ const WeatherApp: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAIFallback, setIsAIFallback] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string>('札幌');
 
   const getWeatherData = async (city: string) => {
@@ -20,9 +22,11 @@ const WeatherApp: React.FC = () => {
     setSelectedCity(city === 'takasaki' ? '高崎' : '札幌');
 
     try {
-      const { text, isFallback } = await fetchWeatherData(city);
+      const { text, isFallback, fromCache: cached, cachedAt: cachedTime } = await fetchWeatherData(city);
       setWeatherData(text);
       setIsAIFallback(!!isFallback);
+      setFromCache(!!cached);
+      setCachedAt(cachedTime);
     } catch (error: any) {
       setError(error.message || 'Unknown error occurred');
     } finally {

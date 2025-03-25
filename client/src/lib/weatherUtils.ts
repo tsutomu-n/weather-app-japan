@@ -6,12 +6,16 @@ export interface GenerateResponse {
   error?: string;
   details?: string;
   isAIFallback?: boolean;
+  fromCache?: boolean;
+  cachedAt?: string | null;
 }
 
 // Return type for weather data
 export interface WeatherResult {
   text: string;
   isFallback: boolean;
+  fromCache?: boolean;
+  cachedAt?: string | null;
 }
 
 // Function to fetch weather data from the server
@@ -44,7 +48,9 @@ export const fetchWeatherData = async (city?: string): Promise<WeatherResult> =>
     
     return {
       text: data.text,
-      isFallback: !!data.isAIFallback
+      isFallback: !!data.isAIFallback,
+      fromCache: !!data.fromCache,
+      cachedAt: data.cachedAt
     };
 
   } catch (error: any) {
