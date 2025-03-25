@@ -270,7 +270,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
         
         <div className="flex justify-center py-4">
           <button 
-            className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer hover:bg-gray-100 px-4 py-2 rounded-full"
+            className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer hover:bg-gray-100 px-4 py-2 rounded-full font-jp"
             onClick={() => onRefresh && onRefresh()}
           >
             <RotateCw className="h-4 w-4 mr-2" />
@@ -311,14 +311,14 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
           </div>
           
           <div className="mt-6">
-            <div className="text-sm text-gray-500 font-medium mb-3">時間ごとの予報</div>
+            <div className="text-sm text-gray-500 font-medium mb-3 font-jp">時間ごとの予報</div>
             <div className="bg-gray-50 rounded-xl p-3">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {formattedHourlyForecasts.map((forecast, index) => (
                   <div key={index} className="text-center bg-white rounded-lg p-3 shadow-sm">
-                    <div className="text-gray-700 font-medium">{forecast.time}</div>
-                    <div className="font-semibold my-1 text-lg">{forecast.temp}</div>
-                    <div className="text-xs text-gray-500">{forecast.condition}</div>
+                    <div className="text-gray-700 font-medium font-en-display">{forecast.time}</div>
+                    <div className="font-semibold my-1 text-lg font-en-display">{forecast.temp}</div>
+                    <div className="text-xs text-gray-500 font-jp">{forecast.condition}</div>
                   </div>
                 ))}
               </div>
@@ -337,62 +337,62 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({
         <div className="px-5 py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500 font-medium">風</div>
+              <div className="text-sm text-gray-500 font-medium font-jp">風</div>
               <div className="mt-2 font-medium">
-                <div className="text-sm text-gray-700 whitespace-normal">
+                <div className="text-sm text-gray-700 whitespace-normal font-jp">
                   {getWindDescription(wind)}
                 </div>
               </div>
             </div>
             
             <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500 font-medium">湿度</div>
-              <div className="mt-2 font-medium">
+              <div className="text-sm text-gray-500 font-medium font-jp">湿度</div>
+              <div className="mt-2 font-medium font-en-display">
                 {humidity}
               </div>
             </div>
             
             <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500 font-medium">気圧</div>
-              <div className="mt-2 font-medium text-sm">
+              <div className="text-sm text-gray-500 font-medium font-jp">気圧</div>
+              <div className="mt-2 font-medium text-sm font-jp">
                 {getPressureDescription(pressure)}
               </div>
             </div>
             
             <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500 font-medium">PM2.5</div>
+              <div className="text-sm text-gray-500 font-medium font-jp">PM2.5</div>
               <div className="mt-2">
                 {pm25 ? (
                   <>
-                    <div className="font-medium">{pm25}</div>
-                    <div className={`text-xs mt-1 ${getPM25Description(pm25).color} font-medium`}>
+                    <div className="font-medium font-en-display">{pm25}</div>
+                    <div className={`text-xs mt-1 ${getPM25Description(pm25).color} font-medium font-jp`}>
                       {getPM25Description(pm25).description}
                     </div>
                   </>
                 ) : (
-                  <div className="font-medium">データなし</div>
+                  <div className="font-medium font-jp">データなし</div>
                 )}
               </div>
             </div>
           </div>
           
           <div className="mt-6 space-y-4">
-            <div className="text-sm text-gray-500 font-medium mb-2">環境情報</div>
+            <div className="text-sm text-gray-500 font-medium mb-2 font-jp">環境情報</div>
             
             <div className="px-4 py-3 bg-amber-50 rounded-lg border border-amber-100">
               <div className="flex items-center">
                 <Flower2 className="h-5 w-5 text-amber-800 mr-2" />
-                <span className="text-sm font-medium text-gray-700">花粉情報</span>
+                <span className="text-sm font-medium text-gray-700 font-jp">花粉情報</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">{pollen || "観測データなし"}</p>
+              <p className="text-sm text-gray-600 mt-2 font-jp">{pollen || "観測データなし"}</p>
             </div>
             
             <div className="px-4 py-3 bg-amber-50 rounded-lg border border-amber-100">
               <div className="flex items-center">
                 <Wind className="h-5 w-5 text-amber-500 mr-2" />
-                <span className="text-sm font-medium text-gray-700">黄砂情報</span>
+                <span className="text-sm font-medium text-gray-700 font-jp">黄砂情報</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">{yellowSand || "観測データなし"}</p>
+              <p className="text-sm text-gray-600 mt-2 font-jp">{yellowSand || "観測データなし"}</p>
             </div>
           </div>
         </div>
