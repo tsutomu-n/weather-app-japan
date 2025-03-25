@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 interface WeatherInfoProps {
   weatherData: string;
   isMobile?: boolean;
+  cardType?: 'basic' | 'forecast' | 'environment' | 'all';
 }
 
 // マークダウンテキストから情報を抽出する関数
@@ -26,7 +27,11 @@ const extractInfo = (text: string, startPattern: string, endPatterns: string[] =
   return text.substring(contentStartIndex, endIndex).trim();
 };
 
-const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, isMobile = false }) => {
+const WeatherInfo: React.FC<WeatherInfoProps> = ({ 
+  weatherData, 
+  isMobile = false,
+  cardType = 'all'
+}) => {
 
   // マークダウンから情報を抽出
   const currentWeather = extractInfo(weatherData, '**☁️☔️ 現在の天気:**', ['**🌡️']);
@@ -51,6 +56,114 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, isMobile = false
   // フッター情報を抽出
   const footer = weatherData.substring(weatherData.lastIndexOf('\n')).trim();
   
+  // 基本情報カード
+  const BasicInfoCard = () => (
+    <div className={`px-2 ${isMobile ? 'py-3' : 'py-4'}`}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">現在の天気</p>
+          <p className="text-lg font-medium">{currentWeather}</p>
+        </div>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">現在の気温</p>
+          <p className="text-lg font-medium">{currentTemp}</p>
+        </div>
+      </div>
+    </div>
+  );
+  
+  // 予報情報カード
+  const ForecastCard = () => (
+    <div className={`px-2 ${isMobile ? 'py-3' : 'py-4'}`}>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">予想気温</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{forecastTemp}</p>
+        </div>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">降水確率</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{rainProb}</p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">日の出</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{sunrise}</p>
+        </div>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">日の入り</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{sunset}</p>
+        </div>
+      </div>
+      
+      {hourlyForecasts.length > 0 && (
+        <>
+          <Separator className="my-3" />
+          <p className="text-sm text-gray-500 mb-2">時間ごとの予報</p>
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            {hourlyForecasts.map((forecast, index) => (
+              <p key={index} className={`${isMobile ? 'text-sm py-1.5' : 'text-base'} touch-manipulation`}>
+                {forecast.replace('* ', '')}
+              </p>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+  
+  // 環境データカード
+  const EnvironmentCard = () => (
+    <div className={`px-2 ${isMobile ? 'py-3' : 'py-4'}`}>
+      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} gap-3 mb-4`}>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">風</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{wind}</p>
+        </div>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">湿度</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{humidity}</p>
+        </div>
+        <div className={`touch-manipulation ${isMobile ? 'col-span-2' : ''}`}>
+          <p className="text-sm text-gray-500 mb-1">気圧</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pressure}</p>
+        </div>
+      </div>
+      
+      <Separator className="my-3" />
+      
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-3'}`}>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">花粉</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pollen}</p>
+        </div>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">黄砂</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{yellowSand}</p>
+        </div>
+        <div className="touch-manipulation">
+          <p className="text-sm text-gray-500 mb-1">PM2.5</p>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pm25}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 text-right text-xs text-muted-foreground">
+        {footer}
+      </div>
+    </div>
+  );
+  
+  // 特定のカードタイプを表示
+  if (cardType === 'basic') {
+    return <BasicInfoCard />;
+  } else if (cardType === 'forecast') {
+    return <ForecastCard />;
+  } else if (cardType === 'environment') {
+    return <EnvironmentCard />;
+  }
+  
+  // すべてのカードを表示（デフォルト）
   return (
     <div className="space-y-4">
       {/* 基本情報カード */}
@@ -59,16 +172,7 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, isMobile = false
           <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'} text-blue-700`}>基本情報</CardTitle>
         </CardHeader>
         <CardContent className={`pt-4 ${isMobile ? 'px-3' : 'px-6'}`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">現在の天気</p>
-              <p className="text-lg font-medium">{currentWeather}</p>
-            </div>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">現在の気温</p>
-              <p className="text-lg font-medium">{currentTemp}</p>
-            </div>
-          </div>
+          <BasicInfoCard />
         </CardContent>
       </Card>
       
@@ -77,42 +181,8 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, isMobile = false
         <CardHeader className="bg-amber-50 pb-2">
           <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'} text-amber-700`}>今日の予報</CardTitle>
         </CardHeader>
-        <CardContent className={`pt-4 ${isMobile ? 'px-3' : 'px-6'}`}>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">予想気温</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{forecastTemp}</p>
-            </div>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">降水確率</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{rainProb}</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">日の出</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{sunrise}</p>
-            </div>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">日の入り</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{sunset}</p>
-            </div>
-          </div>
-          
-          {hourlyForecasts.length > 0 && (
-            <>
-              <Separator className="my-3" />
-              <p className="text-sm text-gray-500 mb-2">時間ごとの予報</p>
-              <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
-                {hourlyForecasts.map((forecast, index) => (
-                  <p key={index} className={`${isMobile ? 'text-sm py-1.5' : 'text-base'} touch-manipulation`}>
-                    {forecast.replace('* ', '')}
-                  </p>
-                ))}
-              </div>
-            </>
-          )}
+        <CardContent className={`pt-0 ${isMobile ? 'px-1' : 'px-2'}`}>
+          <ForecastCard />
         </CardContent>
       </Card>
       
@@ -121,38 +191,8 @@ const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, isMobile = false
         <CardHeader className="bg-green-50 pb-2">
           <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'} text-green-700`}>環境データ</CardTitle>
         </CardHeader>
-        <CardContent className={`pt-4 ${isMobile ? 'px-3' : 'px-6'}`}>
-          <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} gap-3 mb-4`}>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">風</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{wind}</p>
-            </div>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">湿度</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{humidity}</p>
-            </div>
-            <div className={`touch-manipulation ${isMobile ? 'col-span-2' : ''}`}>
-              <p className="text-sm text-gray-500 mb-1">気圧</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pressure}</p>
-            </div>
-          </div>
-          
-          <Separator className="my-3" />
-          
-          <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-3'}`}>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">花粉</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pollen}</p>
-            </div>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">黄砂</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{yellowSand}</p>
-            </div>
-            <div className="touch-manipulation">
-              <p className="text-sm text-gray-500 mb-1">PM2.5</p>
-              <p className={`${isMobile ? 'text-sm' : 'text-base'}`}>{pm25}</p>
-            </div>
-          </div>
+        <CardContent className={`pt-0 ${isMobile ? 'px-1' : 'px-2'}`}>
+          <EnvironmentCard />
         </CardContent>
         <CardFooter className="bg-background bg-opacity-70 px-4 py-2 text-right text-xs text-muted-foreground">
           {footer}

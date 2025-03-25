@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import WeatherInfo from './WeatherInfo';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface WeatherDisplayProps {
   showWeather: boolean;
@@ -24,10 +32,15 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   cachedAt = null
 }) => {
   const isMobile = useIsMobile();
+  const [expanded, setExpanded] = useState(false);
   
   if (!showWeather) {
     return null;
   }
+
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
 
   return (
     <div className="w-full max-w-2xl animate-in fade-in duration-300">
@@ -57,32 +70,120 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
       )}
 
       {!loading && !error && weatherData && (
-        <>
-          <div className="flex justify-end mb-2">
-            {fromCache && (
-              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                <span className="inline-block mr-1">🕒</span>
-                {cachedAt} キャッシュ（3時間有効）
-              </Badge>
-            )}
-            {!fromCache && (
-              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                <span className="inline-block mr-1">✓</span>
-                最新データ
-              </Badge>
-            )}
+        <div className={`relative transition-all duration-300 ${isMobile ? 'pb-16' : ''}`}>
+          <div className="flex justify-between items-center mb-2">
+            <div>
+              {isMobile && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleExpand} 
+                  className="flex items-center gap-1 text-sm text-muted-foreground"
+                >
+                  {expanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      <span>詳細を隠す</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      <span>詳細を表示</span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+            <div>
+              {fromCache && (
+                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  <span className="inline-block mr-1">🕒</span>
+                  {cachedAt} キャッシュ
+                </Badge>
+              )}
+              {!fromCache && (
+                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                  <span className="inline-block mr-1">✓</span>
+                  最新データ
+                </Badge>
+              )}
+            </div>
           </div>
           
-          <WeatherInfo weatherData={weatherData} isMobile={isMobile} />
+          {isMobile ? (
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${expanded ? 'max-h-none' : 'max-h-[700px]'}`}>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="basic-info" className="border-b border-b-primary/20">
+                  <AccordionTrigger className="py-3 px-4 bg-primary/5 hover:bg-primary/10 rounded-t-lg font-semibold">
+                    基本情報
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-3">
+                    <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="basic" />
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="forecast" className="border-b border-b-primary/20">
+                  <AccordionTrigger className="py-3 px-4 bg-amber-500/5 hover:bg-amber-500/10 font-semibold">
+                    今日の予報
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-3">
+                    <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="forecast" />
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="environment" className="border-b border-b-primary/20">
+                  <AccordionTrigger className="py-3 px-4 bg-green-500/5 hover:bg-green-500/10 font-semibold">
+                    環境データ
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-3">
+                    <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="environment" />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+              
+              {expanded && isAIFallback && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-amber-700 text-sm">
+                    <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <WeatherInfo weatherData={weatherData} isMobile={isMobile} />
+              
+              {isAIFallback && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-amber-700 text-sm">
+                    <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
+                  </p>
+                </div>
+              )}
+            </>
+          )}
           
-          {isAIFallback && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-amber-700 text-sm">
-                <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
-              </p>
+          {isMobile && (
+            <div 
+              className={`
+                absolute bottom-0 left-0 right-0 
+                flex justify-center items-center 
+                p-2 bg-gradient-to-t from-white to-transparent
+                ${expanded ? 'hidden' : 'block'}
+              `}
+            >
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleExpand}
+                className="text-primary flex items-center gap-1 rounded-full bg-white/80 px-4 py-1 shadow-sm border"
+              >
+                <ExternalLink className="h-3 w-3" />
+                <span className="text-xs">もっと見る</span>
+              </Button>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
