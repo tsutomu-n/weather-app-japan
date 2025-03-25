@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MapPinIcon, SunIcon, Cloud, CloudRain, Droplets } from "lucide-react";
 import { CityConfig } from "@/constants";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WeatherButtonProps {
   onClick: () => void;
@@ -39,6 +40,8 @@ const WeatherButton: React.FC<WeatherButtonProps> = ({
   city,
   isSelected = false
 }) => {
+  const isMobile = useIsMobile();
+  
   // 都市のバリアントに基づいてアイコンを選択
   const Icon = CITY_ICONS[city.id] || CITY_ICONS.default;
   
@@ -47,17 +50,34 @@ const WeatherButton: React.FC<WeatherButtonProps> = ({
   
   // 選択状態のスタイル
   const selectedClass = isSelected 
-    ? "ring-2 ring-white ring-opacity-70" 
+    ? "ring-2 ring-white ring-opacity-70 scale-105" 
     : "";
   
   return (
     <Button 
       onClick={onClick}
-      className={`${buttonClass} ${selectedClass} text-white font-medium py-6 px-8 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all duration-200 text-lg mb-4 mx-2`}
-      size="lg"
+      className={`
+        ${buttonClass} 
+        ${selectedClass} 
+        text-white 
+        font-medium 
+        ${isMobile ? 'py-4 px-4 text-base w-full' : 'py-6 px-6 text-lg'} 
+        rounded-lg 
+        shadow-lg 
+        focus:outline-none 
+        focus:ring-2 
+        focus:ring-opacity-50 
+        active:scale-95
+        touch-manipulation
+        transition-all 
+        duration-200 
+        mb-2
+        ${isMobile ? 'mx-0 my-1' : 'mx-2 my-2'}
+      `}
+      size={isMobile ? "default" : "lg"}
     >
-      <Icon className="mr-2 h-5 w-5" />
-      今日の{city.nameJa}
+      <Icon className={`${isMobile ? 'mr-1.5 h-4 w-4' : 'mr-2 h-5 w-5'}`} />
+      {isMobile ? city.nameJa : `今日の${city.nameJa}`}
     </Button>
   );
 };

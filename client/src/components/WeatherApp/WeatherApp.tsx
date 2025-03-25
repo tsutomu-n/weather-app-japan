@@ -5,6 +5,7 @@ import { fetchWeatherData, clearWeatherCache } from '@/lib/weatherUtils';
 import { SUPPORTED_CITIES, CityConfig, DEFAULT_CITY } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const WeatherApp: React.FC = () => {
   const [showWeather, setShowWeather] = useState(false);
@@ -79,15 +80,22 @@ const WeatherApp: React.FC = () => {
   // 選択された都市の情報
   const selectedCity = getSelectedCity();
 
+  const isMobile = useIsMobile();
+
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6 bg-gradient-to-b from-sky-50 to-white">
-      <header className="w-full max-w-2xl text-center mb-8 mt-6">
+    <div className="flex flex-col items-center justify-start min-h-screen p-3 sm:p-6 bg-gradient-to-b from-sky-50 to-white">
+      <header className="w-full max-w-2xl text-center mb-4 sm:mb-8 mt-4 sm:mt-6">
         <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
           今日の天気
         </h1>
       </header>
 
-      <div className="flex flex-wrap justify-center gap-2 mb-6 max-w-2xl">
+      <div className={`
+        ${isMobile 
+          ? 'grid grid-cols-2 gap-2 w-full px-1' 
+          : 'flex flex-wrap justify-center gap-2'} 
+        mb-4 sm:mb-6 max-w-2xl
+      `}>
         {SUPPORTED_CITIES.map(city => (
           <WeatherButton 
             key={city.id}
@@ -102,10 +110,10 @@ const WeatherApp: React.FC = () => {
         <div className="flex justify-center mb-4">
           <Button
             variant="outline"
-            size="sm"
+            size={isMobile ? "default" : "sm"}
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-1 shadow-sm"
+            className="flex items-center gap-1 shadow-sm touch-manipulation active:scale-95 transition-transform"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             最新の情報に更新
