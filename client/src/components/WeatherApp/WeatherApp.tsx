@@ -3,7 +3,6 @@ import WeatherDisplay from './WeatherDisplay';
 import { fetchWeatherData } from '@/lib/weatherUtils';
 import { DEFAULT_CITY } from '@/constants';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const WeatherApp: React.FC = () => {
@@ -64,50 +63,26 @@ const WeatherApp: React.FC = () => {
   }, [loading, showWeather]);
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen p-2 sm:p-6 bg-gradient-to-b from-sky-50 to-white">
-      <header className="w-full max-w-2xl text-center mb-3 sm:mb-6 mt-2 sm:mt-6">
-        <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-          今日の天気
-        </h1>
-        <div className="mt-2 text-lg font-medium text-gray-700">
-          {DEFAULT_CITY.nameJa}
-        </div>
-      </header>
-      
-      {showWeather && (
-        <div className="flex justify-center mb-3 sm:mb-4 w-full max-w-xs">
-          <Button
-            variant="outline"
-            size={isMobile ? "default" : "sm"}
-            onClick={handleRefresh}
-            disabled={loading}
-            className={`
-              flex items-center gap-1 shadow-sm touch-manipulation 
-              active:scale-95 transition-transform
-              ${isMobile ? 'w-full py-2.5' : ''}
-            `}
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            最新の情報に更新
-          </Button>
-        </div>
-      )}
-
-      <WeatherDisplay 
-        showWeather={showWeather}
-        loading={loading}
-        error={error}
-        weatherData={weatherData}
-        isAIFallback={isAIFallback}
-        fromCache={fromCache}
-        cachedAt={cachedAt}
-      />
-      
-      <footer className="mt-auto py-6 text-center text-muted-foreground text-sm">
+    <div className="flex flex-col items-center justify-start min-h-screen p-2 sm:p-4 bg-gray-50">
+      <div className="w-full max-w-md">
+        <WeatherDisplay 
+          showWeather={showWeather}
+          loading={loading}
+          error={error}
+          weatherData={weatherData}
+          isAIFallback={isAIFallback}
+          fromCache={fromCache}
+          cachedAt={cachedAt}
+        />
+        
         {isAIFallback && (
-          <p className="mt-1 text-xs text-amber-500">※現在、APIに接続できないため、バックアップデータを表示しています</p>
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-amber-700 text-sm">
+              <span className="font-semibold">注意:</span> 現在、APIに接続できないため、バックアップデータを表示しています
+            </p>
+          </div>
         )}
-      </footer>
+      </div>
     </div>
   );
 };

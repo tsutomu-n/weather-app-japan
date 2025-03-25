@@ -1,5 +1,5 @@
 import React from 'react';
-import WeatherInfo from './WeatherInfo';
+import WeatherInfo from './NewWeatherInfo';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -30,7 +30,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   }
 
   return (
-    <div className="w-full max-w-2xl animate-in fade-in duration-300">
+    <div className="w-full animate-in fade-in duration-300">
       {loading && (
         <Card className="shadow-md text-center border-none">
           <CardContent className="pt-6">
@@ -58,33 +58,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
 
       {!loading && !error && weatherData && (
         <div className="relative transition-all duration-300">
-          <div className="flex justify-end items-center mb-2">
-            <div>
-              {fromCache && (
-                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                  <span className="inline-block mr-1">🕒</span>
-                  {cachedAt}のデータ
-                </Badge>
-              )}
-              {!fromCache && (
-                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                  <span className="inline-block mr-1">✓</span>
-                  最新データ
-                </Badge>
-              )}
-            </div>
-          </div>
-          
           <div className="transition-all duration-500 ease-in-out">
             <WeatherInfo weatherData={weatherData} isMobile={isMobile} cardType="all" />
-            
-            {isAIFallback && (
-              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-700 text-sm">
-                  <span className="font-semibold">注意:</span> 現在、APIに接続できないためバックアップデータを表示中
-                </p>
-              </div>
-            )}
           </div>
         </div>
       )}
