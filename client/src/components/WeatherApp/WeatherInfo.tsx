@@ -1,19 +1,19 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   Cloud, 
   Thermometer, 
   Calendar, 
-  Droplets, 
   Clock, 
+  RotateCw,
   Wind, 
   Droplet, 
   ArrowDown, 
   Flower2, 
-  Sun, 
-  Gauge
+  MoveDown,
+  Gauge,
+  CloudRain
 } from "lucide-react";
 
 interface WeatherInfoProps {
