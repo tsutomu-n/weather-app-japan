@@ -76,7 +76,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
               {fromCache && (
                 <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                   <span className="inline-block mr-1">🕒</span>
-                  {cachedAt} キャッシュ
+                  {cachedAt}のデータ
                 </Badge>
               )}
               {!fromCache && (

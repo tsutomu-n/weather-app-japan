@@ -380,10 +380,19 @@ ${cityName}${suffix}の天気情報です。データは ${location.localtime} �
       // キャッシュ情報をログに出力
       console.log(`Weather data for ${city} (${apiCityName}) served ${fromCache ? 'from cache' : 'freshly fetched'}`);
       
-      // キャッシュされた時間を計算
+      // キャッシュされた時間を計算して読みやすいフォーマットにする
       let cachedTimeString = null;
       if (fromCache && weatherCache[apiCityName]) {
-        cachedTimeString = new Date(weatherCache[apiCityName].timestamp).toLocaleTimeString();
+        const cacheTime = weatherCache[apiCityName].timestamp;
+        const now = Date.now();
+        const diffMinutes = Math.round((now - cacheTime) / 60000);
+        
+        if (diffMinutes < 60) {
+          cachedTimeString = `${diffMinutes}分前`;
+        } else {
+          const diffHours = Math.floor(diffMinutes / 60);
+          cachedTimeString = `${diffHours}時間前`;
+        }
       }
       
       return res.json({ 
