@@ -278,6 +278,7 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
     switch(cityId) {
       case 'sapporo': return 'Sapporo';
       case 'takasaki': return 'Takasaki,Japan';
+      case 'shimonita': return 'Shimonita,Gunma,Japan';
       case 'tokyo': return 'Tokyo';
       case 'osaka': return 'Osaka';
       case 'fukuoka': return 'Fukuoka';
@@ -291,6 +292,7 @@ ${cityName}市の天気情報です。データは ${location.localtime} に更�
     switch(cityId) {
       case 'sapporo': return '札幌';
       case 'takasaki': return '高崎';
+      case 'shimonita': return '下仁田町';
       case 'tokyo': return '東京';
       case 'osaka': return '大阪';
       case 'fukuoka': return '福岡';

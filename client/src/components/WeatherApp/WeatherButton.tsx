@@ -12,6 +12,7 @@ interface WeatherButtonProps {
 const CITY_ICONS: Record<string, React.ElementType> = {
   "sapporo": SunIcon,
   "takasaki": MapPinIcon,
+  "shimonita": Droplets,  // 下仁田町はネギの産地として知られているため、雫のアイコン
   // 将来的に追加される都市のアイコン
   "tokyo": Cloud,
   "osaka": CloudRain,
@@ -24,6 +25,7 @@ const CITY_ICONS: Record<string, React.ElementType> = {
 const VARIANT_STYLES: Record<string, string> = {
   "sapporo": "bg-primary hover:bg-primary/90",
   "takasaki": "bg-emerald-600 hover:bg-emerald-700",
+  "shimonita": "bg-amber-700 hover:bg-amber-800",
   // 将来的に追加される都市のスタイル
   "tokyo": "bg-blue-600 hover:bg-blue-700",
   "osaka": "bg-purple-600 hover:bg-purple-700",

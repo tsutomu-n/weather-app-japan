@@ -22,6 +22,12 @@ export const SUPPORTED_CITIES: CityConfig[] = [
     apiName: "Takasaki,Japan", // 国名を明示的に指定
     variant: "takasaki"
   },
+  {
+    id: "shimonita",
+    nameJa: "下仁田町",
+    apiName: "Shimonita,Gunma,Japan", // 県名と国名を明示的に指定
+    variant: "shimonita"
+  },
   // 将来的にここに新しい都市を追加可能
   // 例: 東京、大阪、福岡、名古屋など
 ];
