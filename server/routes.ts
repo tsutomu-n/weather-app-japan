@@ -60,11 +60,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   async function searchPollenInfo(city = "札幌") {
     try {
       if (!braveSearchApiKey) {
-        return "データなし (APIキーが設定されていません)";
+        return "データなし";
       }
       
-      // Create simple querystring with minimal parameters
-      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(`${city} 花粉情報`)}&count=3`;
+      // 現在の季節に合わせて花粉の種類を特定
+      const today = new Date();
+      const month = today.getMonth() + 1; // 0-indexed
+      const day = today.getDate();
+      
+      // 季節に応じた花粉検索キーワードを追加
+      let pollenType = "";
+      if (month >= 2 && month <= 5) {
+        pollenType = "杉 ヒノキ"; // 春の花粉
+      } else if (month >= 8 && month <= 10) {
+        pollenType = "ブタクサ イネ科"; // 秋の花粉
+      }
+      
+      // より詳細な検索クエリを作成
+      const dateStr = `${today.getFullYear()}年${month}月${day}日`;
+      const searchQuery = `${city} 花粉 飛散情報 ${pollenType} ${dateStr} 速報`;
+      
+      console.log(`Searching for pollen info with query: ${searchQuery}`);
+      
+      // Create search querystring with advanced parameters
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchQuery)}&count=5&freshness=pd`;
       
       const response = await fetch(url, {
           method: "GET",
@@ -77,27 +96,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!response.ok) {
         console.error(`Brave Search API responded with status ${response.status}`);
-        return "データなし (検索APIエラー)";
+        return "観測データなし";
       }
       
       const data = await response.json();
       if (!data.web || !data.web.results || data.web.results.length === 0) {
-        return "本日の情報なし";
+        return "最新情報なし";
       }
       
       // Use Google AI to summarize the search results
       const model = getModel();
-      const prompt = `次の検索結果をもとに、今日の${city}の花粉情報を日本語で30文字以内で要約してください。花粉の種類と飛散状況に焦点を当ててください：
+      const prompt = `次の検索結果をもとに、現在の${city}の花粉飛散状況を日本語で30文字以内で要約してください。
+花粉の種類（杉、ヒノキ、ブタクサなど）と飛散レベル（少ない、中程度、多いなど）を具体的に示してください。
+「推定」という言葉は使わず、観測情報がない場合は「観測データなし」と明記してください：
       
-${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋: ${r.description}`).join('\n')}`;
+${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋: ${r.description}`).join('\n\n')}`;
       
       const result = await model.generateContent(prompt);
       const response_text = await result.response.text();
       
-      return response_text.trim() || "少ない (検索結果より推定)";
+      // 「推定」という言葉が含まれている場合は置き換え
+      if (response_text.includes('推定')) {
+        return "観測データなし";
+      }
+      
+      return response_text.trim() || "観測データなし";
     } catch (error) {
       console.error("Error searching for pollen info:", error);
-      return "少ない (推定)";
+      return "データ取得エラー";
     }
   }
   
@@ -105,11 +131,21 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
   async function searchYellowSandInfo(city = "札幌") {
     try {
       if (!braveSearchApiKey) {
-        return "データなし (APIキーが設定されていません)";
+        return "データなし";
       }
       
-      // Create simple querystring with minimal parameters
-      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(`${city} 黄砂`)}&count=3`;
+      // 直近の日付を含めることで最新情報を取得
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1; // 0-indexed
+      
+      // 黄砂に関するより詳細な検索クエリを作成
+      const searchQuery = `${city} 黄砂 観測 ${year}年${month}月 気象庁`;
+      
+      // Create search querystring with advanced parameters
+      const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(searchQuery)}&count=5&freshness=pd`;
+      
+      console.log(`Searching for yellow sand info with query: ${searchQuery}`);
       
       const response = await fetch(url, {
           method: "GET",
@@ -122,27 +158,35 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
       
       if (!response.ok) {
         console.error(`Brave Search API responded with status ${response.status}`);
-        return "データなし (検索APIエラー)";
+        // 季節に基づいた情報を返す代わりに、より一般的な情報を提供
+        return "現在の観測情報なし";
       }
       
       const data = await response.json();
       if (!data.web || !data.web.results || data.web.results.length === 0) {
-        return "本日の情報なし";
+        return "最新情報なし";
       }
       
       // Use Google AI to summarize the search results
       const model = getModel();
-      const prompt = `次の検索結果をもとに、今日の${city}の黄砂の状況を日本語で30文字以内で要約してください：
+      const prompt = `次の検索結果をもとに、現在の${city}における黄砂の状況を日本語で30文字以内で要約してください。
+黄砂が観測されているかいないかを明確に示し、「推定」という言葉は使わないでください。
+観測情報がない場合は「観測なし」と明記してください：
       
-${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋: ${r.description}`).join('\n')}`;
+${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋: ${r.description}`).join('\n\n')}`;
       
       const result = await model.generateContent(prompt);
       const response_text = await result.response.text();
       
-      return response_text.trim() || "影響なし (検索結果より推定)";
+      // 「推定」という言葉が含まれている場合は置き換え
+      if (response_text.includes('推定')) {
+        return "現在の観測情報なし";
+      }
+      
+      return response_text.trim() || "現在の観測情報なし";
     } catch (error) {
       console.error("Error searching for yellow sand info:", error);
-      return "影響なし (推定)";
+      return "データ取得エラー";
     }
   }
 
@@ -245,22 +289,18 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     
     try {
       pollenInfo = await searchPollenInfo(cityName);
-      // If API returned an error message, use our season-based fallback
-      if (pollenInfo.includes("データなし") || pollenInfo.includes("エラー")) {
-        pollenInfo = defaultPollenInfo;
-      }
+      // 季節に基づいたフォールバックは使用せず、APIからの応答をそのまま表示
     } catch (e) {
-      pollenInfo = defaultPollenInfo;
+      console.error("Error fetching pollen info:", e);
+      pollenInfo = "データ取得エラー";
     }
     
     try {
       yellowSandInfo = await searchYellowSandInfo(cityName);
-      // If API returned an error message, use our season-based fallback
-      if (yellowSandInfo.includes("データなし") || yellowSandInfo.includes("エラー")) {
-        yellowSandInfo = defaultYellowSandInfo;
-      }
+      // 季節に基づいたフォールバックは使用せず、APIからの応答をそのまま表示
     } catch (e) {
-      yellowSandInfo = defaultYellowSandInfo;
+      console.error("Error fetching yellow sand info:", e);
+      yellowSandInfo = "データ取得エラー";
     }
     
     // 市町村の接尾辞を決定
