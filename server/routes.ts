@@ -271,7 +271,7 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
     // 将来的に村を追加する場合はここに追加
 
     // Format the output in Markdown
-    return `# 今日の${cityName}の天気
+    return `# 今日の天気
 
 **☁️☔️ 現在の天気:** ${current.condition.text}
 **🌡️ 現在の気温:** ${current.temp_c}℃ / 体感温度 ${current.feelslike_c}℃${forecastInfo}
@@ -286,7 +286,6 @@ ${data.web.results.slice(0, 3).map((r: any) => `タイトル: ${r.title}, 抜粋
 
 **🌫 PM2.5:** ${pm25} μg/m³
 
-**📝 一言:**
 ${cityName}${suffix}の天気情報です。データは ${location.localtime} に更新されました。
 `;
   }

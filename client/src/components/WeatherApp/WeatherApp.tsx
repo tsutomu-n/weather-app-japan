@@ -83,7 +83,7 @@ const WeatherApp: React.FC = () => {
     <div className="flex flex-col items-center justify-start min-h-screen p-4 sm:p-6">
       <header className="w-full max-w-lg text-center mb-8 mt-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-          日本の都市 天気情報
+          今日の天気
         </h1>
       </header>
 
