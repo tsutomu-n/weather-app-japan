@@ -14,6 +14,17 @@ interface WeatherCache {
   [city: string]: CachedWeatherData;
 }
 
+// 環境データキャッシュのインターフェース
+interface CachedEnvData {
+  data: string;          // 取得したデータ (文字列)
+  timestamp: number;     // キャッシュされた時間（ミリ秒）
+}
+
+// 環境データキャッシュの型定義
+interface EnvDataCache {
+  [key: string]: CachedEnvData;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize API keys
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
@@ -25,6 +36,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12時間（ミリ秒）
   const ENV_CACHE_DURATION = 24 * 60 * 60 * 1000; // 環境データは24時間（ミリ秒）
   const weatherCache: WeatherCache = {};
+  const envDataCache: EnvDataCache = {}; // 花粉・黄砂などの環境データキャッシュ
   
   // エラー発生時のリトライ制限
   const ERROR_COOLDOWN = 30 * 60 * 1000; // エラー後30分は再試行しない
@@ -167,6 +179,16 @@ ${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋
         return "データなし";
       }
       
+      // エラークールダウン期間中ならAPIリクエストをスキップ
+      const now = Date.now();
+      if (
+        lastErrorTimestamp["yellsand"] && 
+        now - lastErrorTimestamp["yellsand"] < ERROR_COOLDOWN
+      ) {
+        console.log(`Skipping yellow sand API request due to recent error (${Math.round((now - lastErrorTimestamp["yellsand"]) / 60000)} minutes ago)`);
+        return "観測データなし";
+      }
+      
       // 直近の日付を含めることで最新情報を取得
       const today = new Date();
       const year = today.getFullYear();
@@ -190,9 +212,15 @@ ${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋
       );
       
       if (!response.ok) {
+        // APIエラー発生時にタイムスタンプを記録
+        lastErrorTimestamp["yellsand"] = Date.now();
         console.error(`Brave Search API responded with status ${response.status}`);
-        // 季節に基づいた情報を返す代わりに、より一般的な情報を提供
         return "現在の観測情報なし";
+      }
+      
+      // エラーが解消されたらタイムスタンプをリセット
+      if (lastErrorTimestamp["yellsand"]) {
+        delete lastErrorTimestamp["yellsand"];
       }
       
       const data = await response.json();
@@ -218,13 +246,15 @@ ${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋
       
       return response_text.trim() || "現在の観測情報なし";
     } catch (error) {
+      // エラー発生時にタイムスタンプを記録
+      lastErrorTimestamp["yellsand"] = Date.now();
       console.error("Error searching for yellow sand info:", error);
       return "データ取得エラー";
     }
   }
 
   // Format weather data into a nice Markdown format
-  async function formatWeatherData(data: any, cityParam = "Sapporo") {
+  async function formatWeatherData(data: any, cityParam = "Sapporo", forceRefresh: boolean = false) {
     const current = data.current;
     const location = data.location;
     const forecast = data.forecast?.forecastday?.[0];
@@ -314,24 +344,59 @@ ${data.web.results.slice(0, 5).map((r: any) => `タイトル: ${r.title}\n抜粋
       defaultYellowSandInfo = "黄砂の影響 - 少ない (季節的推定)";
     }
     
-    // Try to fetch additional information using Brave Search API
+    // 環境データをキャッシュから取得、またはAPIで取得
     let pollenInfo;
     let yellowSandInfo;
     
-    try {
-      pollenInfo = await searchPollenInfo(cityName);
-      // 季節に基づいたフォールバックは使用せず、APIからの応答をそのまま表示
-    } catch (e) {
-      console.error("Error fetching pollen info:", e);
-      pollenInfo = "データ取得エラー";
+    // 花粉情報キャッシュキー
+    const pollenCacheKey = `pollen_${cityName}`;
+    const now = Date.now();
+    
+    // 花粉情報キャッシュチェック（forceRefreshがtrueの場合はキャッシュを無視）
+    if (!forceRefresh && envDataCache[pollenCacheKey] && now - envDataCache[pollenCacheKey].timestamp < ENV_CACHE_DURATION) {
+      console.log(`Using cached pollen data for ${cityName} (cached ${Math.round((now - envDataCache[pollenCacheKey].timestamp) / 60000)} minutes ago)`);
+      pollenInfo = envDataCache[pollenCacheKey].data;
+    } else {
+      try {
+        const refreshReason = forceRefresh ? "force refresh requested" : "cache miss or expired";
+        console.log(`${refreshReason} for pollen data (${cityName}), fetching fresh data...`);
+        
+        pollenInfo = await searchPollenInfo(cityName);
+        
+        // 花粉情報キャッシュ更新
+        envDataCache[pollenCacheKey] = {
+          data: pollenInfo,
+          timestamp: now
+        };
+      } catch (e) {
+        console.error("Error fetching pollen info:", e);
+        pollenInfo = "データ取得エラー";
+      }
     }
     
-    try {
-      yellowSandInfo = await searchYellowSandInfo(cityName);
-      // 季節に基づいたフォールバックは使用せず、APIからの応答をそのまま表示
-    } catch (e) {
-      console.error("Error fetching yellow sand info:", e);
-      yellowSandInfo = "データ取得エラー";
+    // 黄砂情報キャッシュキー
+    const sandCacheKey = `yellsand_${cityName}`;
+    
+    // 黄砂情報キャッシュチェック（forceRefreshがtrueの場合はキャッシュを無視）
+    if (!forceRefresh && envDataCache[sandCacheKey] && now - envDataCache[sandCacheKey].timestamp < ENV_CACHE_DURATION) {
+      console.log(`Using cached yellow sand data for ${cityName} (cached ${Math.round((now - envDataCache[sandCacheKey].timestamp) / 60000)} minutes ago)`);
+      yellowSandInfo = envDataCache[sandCacheKey].data;
+    } else {
+      try {
+        const refreshReason = forceRefresh ? "force refresh requested" : "cache miss or expired";
+        console.log(`${refreshReason} for yellow sand data (${cityName}), fetching fresh data...`);
+        
+        yellowSandInfo = await searchYellowSandInfo(cityName);
+        
+        // 黄砂情報キャッシュ更新
+        envDataCache[sandCacheKey] = {
+          data: yellowSandInfo,
+          timestamp: now
+        };
+      } catch (e) {
+        console.error("Error fetching yellow sand info:", e);
+        yellowSandInfo = "データ取得エラー";
+      }
     }
     
     // 市町村の接尾辞を決定
@@ -440,11 +505,24 @@ ${cityName}${suffix}の天気情報です。データは ${location.localtime} �
 
   // キャッシュをクリアするエンドポイント（デバッグ用）
   app.post('/api/clear-cache', (req, res) => {
+    // 天気データキャッシュをクリア
     Object.keys(weatherCache).forEach(key => {
       delete weatherCache[key];
     });
-    console.log('Weather cache cleared');
-    return res.json({ success: true, message: 'Cache cleared' });
+    
+    // 環境データキャッシュをクリア
+    Object.keys(envDataCache).forEach(key => {
+      delete envDataCache[key];
+    });
+    
+    // エラータイムスタンプもリセット
+    lastErrorTimestamp = {};
+    
+    console.log('All caches cleared (weather, environment data, error timestamps)');
+    return res.json({ 
+      success: true, 
+      message: 'All caches cleared' 
+    });
   });
 
   // Weather API endpoint - now using real data with caching
