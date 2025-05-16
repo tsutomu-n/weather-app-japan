@@ -7,6 +7,7 @@
 以下はアプリの見た目です。
 
 ![天気予報アプリのUI](./weather-app-japan.png)
+<img src="./weather-app-japan.png" alt="天気予報アプリのUI" width="300">
 
 ## 機能
 
